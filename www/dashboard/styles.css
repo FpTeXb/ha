@@ -1,0 +1,281 @@
+/* Glass dark design system — Home Dashboard (iPad mini 5, 1024×768) */
+:root {
+  /* Base */
+  --bg-0: #07080c;
+  --bg-1: #0d1016;
+  --bg-2: #141821;
+
+  /* Glass surfaces */
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-strong: rgba(255, 255, 255, 0.10);
+  --glass-quiet: rgba(255, 255, 255, 0.035);
+  --stroke: rgba(255, 255, 255, 0.10);
+  --stroke-strong: rgba(255, 255, 255, 0.18);
+
+  /* Text */
+  --fg: #f4f5f7;
+  --fg-2: rgba(244, 245, 247, 0.72);
+  --fg-3: rgba(244, 245, 247, 0.50);
+  --fg-4: rgba(244, 245, 247, 0.32);
+
+  /* Accents — oklch, low chroma, harmonised */
+  --amber: oklch(0.82 0.13 75);    /* lights / on */
+  --cyan:  oklch(0.78 0.10 220);   /* cool / climate */
+  --rose:  oklch(0.75 0.12 20);    /* alerts / security */
+  --mint:  oklch(0.80 0.11 160);   /* energy / good */
+  --violet: oklch(0.74 0.10 290);  /* media */
+
+  /* Type */
+  --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif;
+  --font-num: "SF Pro Display", "Inter", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "Roboto Mono", monospace;
+
+  /* Radii / spacing */
+  --r-lg: 28px;
+  --r-md: 20px;
+  --r-sm: 14px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg); -webkit-font-smoothing: antialiased; }
+
+/* Reusable glass classes */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border-radius: var(--r-md);
+}
+.glass-strong {
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke-strong);
+  backdrop-filter: blur(36px) saturate(160%);
+  -webkit-backdrop-filter: blur(36px) saturate(160%);
+  border-radius: var(--r-md);
+}
+
+/* Tablet frame (iPad mini 5 landscape) */
+.tablet {
+  position: relative;
+  width: 1024px;
+  height: 768px;
+  overflow: hidden;
+  border-radius: 0;
+  color: var(--fg);
+  font-family: var(--font-ui);
+  background: var(--bg-0);
+}
+
+/* Ambient dark wallpaper — soft graded colour bloom under glass */
+.wallpaper {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 178, 90, 0.18), transparent 42%),
+    radial-gradient(circle at 82% 18%, rgba(108, 160, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 50% 95%, rgba(178, 120, 255, 0.14), transparent 48%),
+    linear-gradient(180deg, #0a0d14 0%, #06080d 100%);
+}
+
+/* Status pill text */
+.eyebrow {
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--fg-3); font-weight: 600;
+}
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* Toggle switch (visual) */
+.sw {
+  width: 44px; height: 26px; border-radius: 999px;
+  background: rgba(255,255,255,0.10); position: relative; flex-shrink: 0;
+  transition: background 200ms;
+}
+.sw::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: left 200ms;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+.sw.on { background: var(--amber); }
+.sw.on::after { left: 21px; }
+.sw-mini::after { display: none; }
+
+/* Slider track */
+.track {
+  height: 8px; border-radius: 999px;
+  background: rgba(255,255,255,0.10);
+  position: relative; overflow: hidden;
+}
+.track > .fill {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  background: var(--amber);
+  border-radius: 999px;
+}
+
+/* Circular ring (climate, energy) */
+.ring-bg { stroke: rgba(255,255,255,0.08); fill: none; }
+.ring-fg { fill: none; stroke-linecap: round; transition: stroke-dashoffset 400ms ease; }
+
+/* Generic chip */
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--stroke);
+  font-size: 12px; color: var(--fg-2);
+}
+
+/* Soft dot indicator */
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.amber { background: var(--amber); box-shadow: 0 0 12px var(--amber); }
+.dot.mint  { background: var(--mint);  box-shadow: 0 0 12px var(--mint); }
+.dot.rose  { background: var(--rose);  box-shadow: 0 0 12px var(--rose); }
+.dot.cyan  { background: var(--cyan);  box-shadow: 0 0 12px var(--cyan); }
+.dot.violet{ background: var(--violet);box-shadow: 0 0 12px var(--violet); }
+
+/* Hover */
+.tap { cursor: pointer; transition: transform 120ms ease, background 180ms ease, border-color 180ms ease; }
+.tap:hover { background: var(--glass-strong); }
+.tap:active { transform: scale(0.98); }
+
+/* Headline numerics */
+.huge { font-size: 64px; font-weight: 300; letter-spacing: -0.02em; line-height: 1; }
+.big  { font-size: 40px; font-weight: 400; letter-spacing: -0.01em; line-height: 1; }
+.med  { font-size: 22px; font-weight: 500; line-height: 1.2; }
+.lab  { font-size: 13px; color: var(--fg-3); }
+
+/* Subtle floor image treatment */
+.floor-img {
+  width: 100%; height: 100%; object-fit: contain;
+  filter: brightness(0.95) contrast(1.05) saturate(0.85);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Inner glow border on active card */
+.active-glow {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 197, 122, 0.45),
+    0 8px 30px rgba(255, 178, 90, 0.18);
+}
+
+/* Camera placeholder — soft stripes */
+.cam-stub {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 6px, rgba(255,255,255,0.02) 6px 12px),
+    linear-gradient(180deg, #11131a, #0a0c12);
+}
+
+/* Scrollbar hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* ===== V2 Refined — Real HA data ===== */
+
+/* Floorplan stack: base + lighten overlays */
+.fp-stack {
+  position: relative; width: 100%; aspect-ratio: 1024 / 576;
+  border-radius: 14px; overflow: hidden;
+  background: #0a0c12;
+}
+.fp-stack img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; pointer-events: none; }
+.fp-stack .fp-base { filter: brightness(0.9) saturate(0.85) contrast(1.02); }
+.fp-stack .fp-on   { mix-blend-mode: lighten; opacity: 0; transition: opacity 350ms ease; }
+.fp-stack .fp-on.active { opacity: 1; }
+
+/* Clickable light dot */
+.lite-dot {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(20,22,30,0.55);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 180ms ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(255,255,255,0.55);
+  z-index: 3;
+}
+.lite-dot:hover { transform: translate(-50%, -50%) scale(1.18); border-color: rgba(255,255,255,0.7); }
+.lite-dot.on {
+  background: var(--amber);
+  border-color: rgba(255,255,255,0.9);
+  color: #2a1d05;
+  box-shadow: 0 0 0 4px rgba(255, 197, 122, 0.18), 0 0 16px rgba(255,197,122,0.55);
+}
+.lite-dot.spot { width: 18px; height: 18px; }
+.lite-dot.spot.on { box-shadow: 0 0 0 3px rgba(255, 197, 122, 0.2), 0 0 14px rgba(255,197,122,0.55); }
+
+/* Climate / curtain dot */
+.dev-dot {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(20,22,30,0.55);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 180ms ease;
+  backdrop-filter: blur(6px);
+  color: rgba(255,255,255,0.55); z-index: 3;
+}
+.dev-dot.ac.on { background: var(--cyan); color: #04161e; border-color: rgba(255,255,255,0.85); box-shadow: 0 0 12px rgba(140,200,240,0.55); }
+.dev-dot.ac.on.heat { background: var(--amber); color: #1f1207; box-shadow: 0 0 12px rgba(228,170,90,0.6); }
+.dev-dot.cur.on { background: var(--mint); color: #04231a; border-color: rgba(255,255,255,0.85); }
+
+/* Tooltip label that appears on hover */
+.dot-tip {
+  position: absolute; left: 50%; bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.78); color: #fff;
+  padding: 4px 8px; border-radius: 6px;
+  font-size: 11px; white-space: nowrap;
+  pointer-events: none;
+  opacity: 0; transition: opacity 120ms ease;
+}
+.lite-dot:hover .dot-tip, .dev-dot:hover .dot-tip { opacity: 1; }
+
+/* Room card in left rail */
+.room-row {
+  padding: 10px 12px; border-radius: 12px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; transition: background 160ms;
+  border: 1px solid transparent;
+}
+.room-row:hover { background: rgba(255,255,255,0.04); }
+.room-row.sel  { background: rgba(255,255,255,0.07); border-color: var(--stroke-strong); }
+.room-row .ico {
+  width: 30px; height: 30px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.06); color: var(--fg-2); flex-shrink: 0;
+}
+.room-row.has-on .ico { background: rgba(255,197,122,0.18); color: var(--amber); }
+
+/* Compact AC row */
+.ac-row {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  padding: 8px 10px; border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--stroke);
+}
+.ac-row.on { background: rgba(120,180,230,0.10); border-color: rgba(120,180,230,0.3); }
+
+/* Scene tile */
+.scene-tile {
+  flex: 1; min-width: 0;
+  padding: 10px 8px; border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--stroke);
+  cursor: pointer; transition: all 160ms;
+  color: var(--fg-2);
+}
+.scene-tile:hover { background: var(--glass-strong); }
+.scene-tile.on { background: rgba(255,197,122,0.12); border-color: rgba(255,197,122,0.45); color: var(--amber); }
+
+/* Mini chip for floorplan stats */
+.fp-overlay-chip {
+  position: absolute; padding: 6px 10px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  border-radius: 999px; border: 1px solid var(--stroke);
+  font-size: 11px; color: var(--fg-2);
+  display: flex; align-items: center; gap: 6px;
+}

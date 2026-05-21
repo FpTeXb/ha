@@ -1,0 +1,64 @@
+# === 场景定义 ===
+# 复制到 /config/scenes.yaml （或 configuration.yaml 中 scene: !include scenes.yaml）
+
+- id: home_return
+  name: 回家
+  icon: mdi:home
+  entities:
+    light.ruhu:
+      state: "on"
+      brightness: 230
+    light.yeelink_cn_2027394738_ceil47_s_2_light:
+      state: "on"
+      brightness: 230
+
+- id: home_away
+  name: 离家
+  icon: mdi:door-open
+  entities:
+    light.yeelink_cn_2027394738_ceil47_s_2_light:
+      state: "off"
+    light.zoudao:
+      state: "off"
+    light.yeelink_cn_2008384777_ceil45_s_2_light:
+      state: "off"
+    light.yeelink_cn_2076746268_ml13_s_2_light:
+      state: "off"
+    light.zhuwei:
+      state: "off"
+    light.xiaomi_cn_995127909_pro2_s_3_light:
+      state: "off"
+    light.yeelink_cn_2001142567_ml13_s_2_light:
+      state: "off"
+    light.yeelink_cn_962306557_ceil45_s_2_light:
+      state: "off"
+    light.yeelink_cn_2103176439_ml13_s_2_light:
+      state: "off"
+    light.yeelink_cn_950517169_panel6_s_2_light:
+      state: "off"
+    light.yeelink_cn_2104008081_ml13_s_2_light:
+      state: "off"
+    light.kewei:
+      state: "off"
+    light.yeelink_cn_2080481036_ml13_s_2_light:
+      state: "off"
+    light.yeelink_cn_2007278289_ceil45_s_2_light:
+      state: "off"
+    light.ruhu:
+      state: "off"
+    light.lemesh_cn_782316947_wy02_s_2_light:
+      state: "off"
+    light.yeelink_cn_2006173280_ceil45_s_2_light:
+      state: "off"
+    climate.yj1226_cn_2141905176_air:
+      state: "off"
+    climate.yj1226_cn_2141895500_air:
+      state: "off"
+    climate.yj1226_cn_2141905191_air:
+      state: "off"
+    climate.yj1226_cn_2141905179_air:
+      state: "off"
+    climate.yj1226_cn_2141895509_air:
+      state: "off"
+    climate.yj1226_cn_2141895501_air:
+      state: "off"

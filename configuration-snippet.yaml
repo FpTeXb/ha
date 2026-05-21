@@ -1,0 +1,13 @@
+# === 配置片段：把原型仪表盘作为侧边栏面板 ===
+# 复制到 configuration.yaml 里（保持现有内容，把下面追加进去），重启 HA
+
+panel_iframe:
+  home_dashboard:
+    title: '我的家'
+    url: '/local/dashboard/index.html'
+    icon: mdi:home-variant
+    require_admin: false
+
+# 重启后，HA 左侧栏会多一个 "我的家" 入口，点进去就是 1:1 还原的原型。
+# 首次进入会要求填 HA 地址 + 长期访问令牌（HA: 用户头像 → 安全 → 长期访问令牌 → 创建）。
+# 填一次会存在浏览器 localStorage 里，之后自动连接。

@@ -1,0 +1,246 @@
+# === 脚本定义 ===
+# 复制到 /config/scripts.yaml （或 configuration.yaml 中 script: !include scripts.yaml）
+
+scene_cool_down:
+  alias: 降温场景（依次开启全部空调 22°制冷，间隔 2s）
+  icon: mdi:snowflake
+  sequence:
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905176_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905176_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895500_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895500_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905191_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905191_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905179_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905179_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895509_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895509_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895501_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895501_air
+        data:
+          temperature: 22
+
+ac_all_cool_22:
+  alias: 全部空调 制冷 22°（依次启动，间隔 2s）
+  icon: mdi:snowflake
+  sequence:
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905176_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905176_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895500_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895500_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905191_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905191_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905179_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905179_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895509_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895509_air
+        data:
+          temperature: 22
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895501_air
+        data:
+          hvac_mode: cool
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895501_air
+        data:
+          temperature: 22
+
+ac_all_heat_30:
+  alias: 全部空调 制热 30°（依次启动，间隔 2s）
+  icon: mdi:weather-sunny
+  sequence:
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905176_air
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905176_air
+        data:
+          temperature: 30
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895500_air
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895500_air
+        data:
+          temperature: 30
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905191_air
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905191_air
+        data:
+          temperature: 30
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141905179_air
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141905179_air
+        data:
+          temperature: 30
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895509_air
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895509_air
+        data:
+          temperature: 30
+      - delay: "00:00:02"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.yj1226_cn_2141895501_air
+        data:
+          hvac_mode: heat
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.yj1226_cn_2141895501_air
+        data:
+          temperature: 30
+
+ac_all_off:
+  alias: 关闭全部空调
+  icon: mdi:power
+  sequence:
+    - service: climate.turn_off
+      target:
+        entity_id:
+          - climate.yj1226_cn_2141905176_air
+          - climate.yj1226_cn_2141895500_air
+          - climate.yj1226_cn_2141905191_air
+          - climate.yj1226_cn_2141905179_air
+          - climate.yj1226_cn_2141895509_air
+          - climate.yj1226_cn_2141895501_air
+
+# 别名脚本：对应原仪表盘的"回家 / 离家"按钮
+scene_home:
+  alias: 场景 · 回家
+  icon: mdi:home
+  sequence:
+    - service: scene.turn_on
+      target:
+        entity_id: scene.home_return
+
+scene_away:
+  alias: 场景 · 离家
+  icon: mdi:door-open
+  sequence:
+    - service: scene.turn_on
+      target:
+        entity_id: scene.home_away

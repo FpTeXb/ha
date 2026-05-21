@@ -1,0 +1,1443 @@
+# === Lovelace 仪表盘 · Mushroom + card-mod 高保真版 ===
+#
+# 🧩 依赖（必装，HACS）：
+#   - Mushroom            (frontend cards: light/climate/cover/vacuum/media/template)
+#   - card-mod            (CSS overrides — 让所有卡变成深色玻璃)
+#   - lovelace-card-mod   (同 card-mod，HACS 里可能显示这个名字)
+#
+# ⚠️ 部署顺序（极其重要）：
+#   1) HACS 中装好 Mushroom + card-mod
+#   2) 复制 www/floorplan/*.png 到 /config/www/floorplan/
+#   3) scenes.yaml 追加到 /config/scenes.yaml（或 !include）
+#   4) scripts.yaml 追加到 /config/scripts.yaml（或 !include）
+#   5) 重启 Home Assistant
+#   6) 设置 → 仪表盘 → 添加仪表盘 → 新仪表盘（从头开始）
+#      → 编辑 → 三点 → 原始配置编辑器 → 粘贴本文件 from "title:" → 保存
+#
+# 户型平面图实现：
+#   - 基础图：/local/floorplan/base.png
+#   - 每盏灯一个 conditional image 叠加层，开灯时显示
+#   - 用 mix-blend-mode: screen 让叠加图与基础图相加（亮起效果）
+#   - 灯/空调/窗帘的圆形 dot 放在最上层，可点击交互
+#
+# 如仍有"未找到实体"卡片：
+#   - light.zhuwei / light.kewei / light.ruhu / light.zoudao
+#     → 是原型里给主卫/客卫/入户/走道用的简写 ID
+#     → 改成你 HA 里实际的 entity_id（开发者工具 → 状态 里查）
+#   - vacuum.* / sensor.roborock_* / media_player.* → 占位，请替换
+
+title: 我的家
+views:
+- title: 主页
+  path: home
+  type: sections
+  max_columns: 4
+  sections:
+  - type: grid
+    column_span: 4
+    cards:
+    - type: heading
+      heading: "我的家 · 户型"
+    - type: picture-elements
+      image: /local/floorplan/base.png
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+          ha-card { padding: 8px !important; }
+      elements:
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2027394738_ceil47_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2027394738_ceil47_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.zoudao
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.zoudao.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2008384777_ceil45_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2008384777_ceil45_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2076746268_ml13_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2076746268_ml13_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.zhuwei
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.zhuwei.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.xiaomi_cn_995127909_pro2_s_3_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.xiaomi_cn_995127909_pro2_s_3_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2001142567_ml13_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2001142567_ml13_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_962306557_ceil45_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_962306557_ceil45_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2103176439_ml13_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2103176439_ml13_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_950517169_panel6_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_950517169_panel6_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2104008081_ml13_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2104008081_ml13_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.kewei
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.kewei.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2080481036_ml13_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2080481036_ml13_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2007278289_ceil45_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2007278289_ceil45_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.ruhu
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.ruhu.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.lemesh_cn_782316947_wy02_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.lemesh_cn_782316947_wy02_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: conditional
+        conditions:
+        - entity: light.yeelink_cn_2006173280_ceil45_s_2_light
+          state: "on"
+        elements:
+        - type: image
+          image: /local/floorplan/light.yeelink_cn_2006173280_ceil45_s_2_light.png
+          style:
+            top: "50%"
+            left: "50%"
+            width: "100%"
+            height: "100%"
+            mix-blend-mode: screen
+            pointer-events: none
+            transition: "opacity 400ms ease"
+      - type: state-icon
+        entity: light.yeelink_cn_2027394738_ceil47_s_2_light
+        title: 客厅
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "55.19%"
+          left: "45.51%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.zoudao
+        title: 走道
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "42.82%"
+          left: "55.86%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2008384777_ceil45_s_2_light
+        title: 姐姐房
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "66.09%"
+          left: "73.95%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2076746268_ml13_s_2_light
+        title: 窗台射灯
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "76.47%"
+          left: "56.62%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.zhuwei
+        title: 主卫
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "43.74%"
+          left: "28.33%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.xiaomi_cn_995127909_pro2_s_3_light
+        title: 阳台
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "85.79%"
+          left: "48.14%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2001142567_ml13_s_2_light
+        title: 窗台筒灯
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "76.58%"
+          left: "61.63%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_962306557_ceil45_s_2_light
+        title: 书房
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "24.57%"
+          left: "52.24%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2103176439_ml13_s_2_light
+        title: 洗手台
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "31.7%"
+          left: "43.2%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_950517169_panel6_s_2_light
+        title: 厨房
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "32.55%"
+          left: "62.62%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2104008081_ml13_s_2_light
+        title: 厨房射灯
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "23.88%"
+          left: "62.33%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.kewei
+        title: 客卫
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "22.54%"
+          left: "42.93%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2080481036_ml13_s_2_light
+        title: 主卧射灯
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "43.62%"
+          left: "33.78%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2007278289_ceil45_s_2_light
+        title: 主卧
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "69.73%"
+          left: "27.86%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.ruhu
+        title: 入户
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "40.52%"
+          left: "74.85%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.lemesh_cn_782316947_wy02_s_2_light
+        title: 餐厅
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "55.46%"
+          left: "57.61%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: light.yeelink_cn_2006173280_ceil45_s_2_light
+        title: 弟弟房
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        style:
+          top: "23.76%"
+          left: "32.6%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(255,255,255,0.45)"
+          --paper-item-icon-active-color: "#ffc97a"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(255,255,255,0.12)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: climate.yj1226_cn_2141905176_air
+        icon: mdi:snowflake
+        title: 客厅空调1
+        tap_action:
+          action: more-info
+        style:
+          top: "37.9%"
+          left: "66.61%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,240,0.6)"
+          --paper-item-icon-active-color: "#8cdcf0"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,240,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: climate.yj1226_cn_2141895500_air
+        icon: mdi:snowflake
+        title: 客厅空调2
+        tap_action:
+          action: more-info
+        style:
+          top: "38.43%"
+          left: "46.58%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,240,0.6)"
+          --paper-item-icon-active-color: "#8cdcf0"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,240,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: climate.yj1226_cn_2141905191_air
+        icon: mdi:snowflake
+        title: 主卧空调
+        tap_action:
+          action: more-info
+        style:
+          top: "51.58%"
+          left: "30.91%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,240,0.6)"
+          --paper-item-icon-active-color: "#8cdcf0"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,240,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: climate.yj1226_cn_2141905179_air
+        icon: mdi:snowflake
+        title: 姐姐空调
+        tap_action:
+          action: more-info
+        style:
+          top: "48.53%"
+          left: "72.16%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,240,0.6)"
+          --paper-item-icon-active-color: "#8cdcf0"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,240,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: climate.yj1226_cn_2141895509_air
+        icon: mdi:snowflake
+        title: 弟弟空调
+        tap_action:
+          action: more-info
+        style:
+          top: "34.94%"
+          left: "33.43%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,240,0.6)"
+          --paper-item-icon-active-color: "#8cdcf0"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,240,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: climate.yj1226_cn_2141895501_air
+        icon: mdi:snowflake
+        title: 书房空调
+        tap_action:
+          action: more-info
+        style:
+          top: "34.35%"
+          left: "53.85%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,240,0.6)"
+          --paper-item-icon-active-color: "#8cdcf0"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,240,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: cover.xiaomi_cn_875660422_acn010_s_2_curtain
+        icon: mdi:blinds-horizontal
+        title: 客厅窗帘
+        tap_action:
+          action: more-info
+        style:
+          top: "76.59%"
+          left: "47.71%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,190,0.6)"
+          --paper-item-icon-active-color: "#8cdcbe"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,190,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: cover.xiaomi_cn_877631852_acn010_s_2_curtain
+        icon: mdi:blinds-horizontal
+        title: 书房窗帘
+        tap_action:
+          action: more-info
+        style:
+          top: "15.48%"
+          left: "51.52%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,190,0.6)"
+          --paper-item-icon-active-color: "#8cdcbe"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,190,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: cover.xiaomi_cn_877633736_acn010_s_2_curtain
+        icon: mdi:blinds-horizontal
+        title: 弟弟窗帘
+        tap_action:
+          action: more-info
+        style:
+          top: "15.17%"
+          left: "34.38%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,190,0.6)"
+          --paper-item-icon-active-color: "#8cdcbe"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,190,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: cover.xiaomi_cn_877631863_acn010_s_2_curtain
+        icon: mdi:blinds-horizontal
+        title: 主卧窗纱
+        tap_action:
+          action: more-info
+        style:
+          top: "82.5%"
+          left: "28.59%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,190,0.6)"
+          --paper-item-icon-active-color: "#8cdcbe"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,190,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: cover.xiaomi_cn_876990609_acn010_s_2_curtain
+        icon: mdi:blinds-horizontal
+        title: 主卧窗帘
+        tap_action:
+          action: more-info
+        style:
+          top: "91.77%"
+          left: "28.53%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,190,0.6)"
+          --paper-item-icon-active-color: "#8cdcbe"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,190,0.25)"
+          transform: "translate(-50%, -50%)"
+      - type: state-icon
+        entity: cover.xiaomi_cn_875659223_acn010_s_2_curtain
+        icon: mdi:blinds-horizontal
+        title: 姐姐窗帘
+        tap_action:
+          action: more-info
+        style:
+          top: "81.97%"
+          left: "72.46%"
+          width: 26px
+          height: 26px
+          --mdc-icon-size: 16px
+          --paper-item-icon-color: "rgba(140,220,190,0.6)"
+          --paper-item-icon-active-color: "#8cdcbe"
+          background: "rgba(15,17,24,0.55)"
+          backdrop-filter: "blur(6px)"
+          border-radius: "50%"
+          border: "1px solid rgba(140,220,190,0.25)"
+          transform: "translate(-50%, -50%)"
+  - type: grid
+    column_span: 1
+    cards:
+    - type: heading
+      heading: 场景
+    - type: horizontal-stack
+      cards:
+      - type: custom:mushroom-template-card
+        primary: 回家
+        secondary: ""
+        icon: mdi:home
+        icon_color: amber
+        fill_container: true
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.home_return
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255,255,255,0.04) !important;
+              border: 1px solid rgba(255,255,255,0.08) !important;
+              border-radius: 16px !important;
+              height: 96px;
+            }
+            ha-card:hover {
+              background: rgba(255,197,122,0.12) !important;
+              border-color: rgba(255,197,122,0.45) !important;
+            }
+      - type: custom:mushroom-template-card
+        primary: 离家
+        secondary: ""
+        icon: mdi:door-open
+        icon_color: grey
+        fill_container: true
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          service_data:
+            entity_id: scene.home_away
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255,255,255,0.04) !important;
+              border: 1px solid rgba(255,255,255,0.08) !important;
+              border-radius: 16px !important;
+              height: 96px;
+            }
+            ha-card:hover {
+              background: rgba(180,180,200,0.12) !important;
+              border-color: rgba(180,180,200,0.45) !important;
+            }
+      - type: custom:mushroom-template-card
+        primary: 降温
+        secondary: ""
+        icon: mdi:snowflake
+        icon_color: cyan
+        fill_container: true
+        tap_action:
+          action: call-service
+          service: script.scene_cool_down
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255,255,255,0.04) !important;
+              border: 1px solid rgba(255,255,255,0.08) !important;
+              border-radius: 16px !important;
+              height: 96px;
+            }
+            ha-card:hover {
+              background: rgba(140,220,240,0.12) !important;
+              border-color: rgba(140,220,240,0.45) !important;
+            }
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: 空调
+    - type: custom:mushroom-climate-card
+      entity: climate.yj1226_cn_2141905176_air
+      name: 客厅空调1
+      hvac_modes:
+      - "off"
+      - cool
+      - heat
+      show_temperature_control: true
+      collapsible_controls: false
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-climate-card
+      entity: climate.yj1226_cn_2141895500_air
+      name: 客厅空调2
+      hvac_modes:
+      - "off"
+      - cool
+      - heat
+      show_temperature_control: true
+      collapsible_controls: false
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-climate-card
+      entity: climate.yj1226_cn_2141905191_air
+      name: 主卧空调
+      hvac_modes:
+      - "off"
+      - cool
+      - heat
+      show_temperature_control: true
+      collapsible_controls: false
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-climate-card
+      entity: climate.yj1226_cn_2141905179_air
+      name: 姐姐空调
+      hvac_modes:
+      - "off"
+      - cool
+      - heat
+      show_temperature_control: true
+      collapsible_controls: false
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-climate-card
+      entity: climate.yj1226_cn_2141895509_air
+      name: 弟弟空调
+      hvac_modes:
+      - "off"
+      - cool
+      - heat
+      show_temperature_control: true
+      collapsible_controls: false
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-climate-card
+      entity: climate.yj1226_cn_2141895501_air
+      name: 书房空调
+      hvac_modes:
+      - "off"
+      - cool
+      - heat
+      show_temperature_control: true
+      collapsible_controls: false
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: heading
+      heading: 一键操作
+    - type: horizontal-stack
+      cards:
+      - type: custom:mushroom-template-card
+        primary: "22°"
+        icon: mdi:snowflake
+        icon_color: cyan
+        fill_container: true
+        tap_action:
+          action: call-service
+          service: script.ac_all_cool_22
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(140,220,240,0.08) !important;
+              border: 1px solid rgba(140,220,240,0.25) !important;
+              border-radius: 14px !important;
+              height: 72px;
+            }
+      - type: custom:mushroom-template-card
+        primary: "30°"
+        icon: mdi:weather-sunny
+        icon_color: amber
+        fill_container: true
+        tap_action:
+          action: call-service
+          service: script.ac_all_heat_30
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255,197,122,0.08) !important;
+              border: 1px solid rgba(255,197,122,0.25) !important;
+              border-radius: 14px !important;
+              height: 72px;
+            }
+      - type: custom:mushroom-template-card
+        primary: 关闭
+        icon: mdi:power
+        icon_color: grey
+        fill_container: true
+        tap_action:
+          action: call-service
+          service: script.ac_all_off
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(200,200,210,0.08) !important;
+              border: 1px solid rgba(200,200,210,0.25) !important;
+              border-radius: 14px !important;
+              height: 72px;
+            }
+  - type: grid
+    column_span: 1
+    cards:
+    - type: heading
+      heading: 窗帘
+    - type: custom:mushroom-cover-card
+      entity: cover.xiaomi_cn_875660422_acn010_s_2_curtain
+      name: 客厅窗帘
+      show_buttons_control: true
+      show_position_control: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-cover-card
+      entity: cover.xiaomi_cn_877631852_acn010_s_2_curtain
+      name: 书房窗帘
+      show_buttons_control: true
+      show_position_control: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-cover-card
+      entity: cover.xiaomi_cn_877633736_acn010_s_2_curtain
+      name: 弟弟窗帘
+      show_buttons_control: true
+      show_position_control: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-cover-card
+      entity: cover.xiaomi_cn_877631863_acn010_s_2_curtain
+      name: 主卧窗纱
+      show_buttons_control: true
+      show_position_control: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-cover-card
+      entity: cover.xiaomi_cn_876990609_acn010_s_2_curtain
+      name: 主卧窗帘
+      show_buttons_control: true
+      show_position_control: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-cover-card
+      entity: cover.xiaomi_cn_875659223_acn010_s_2_curtain
+      name: 姐姐窗帘
+      show_buttons_control: true
+      show_position_control: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: 房间灯
+    - type: custom:mushroom-light-card
+      entity: light.yeelink_cn_2027394738_ceil47_s_2_light
+      name: 客厅
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.zoudao
+      name: 走道
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.yeelink_cn_2008384777_ceil45_s_2_light
+      name: 姐姐房
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.zhuwei
+      name: 主卫
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.xiaomi_cn_995127909_pro2_s_3_light
+      name: 阳台
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.yeelink_cn_962306557_ceil45_s_2_light
+      name: 书房
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.yeelink_cn_950517169_panel6_s_2_light
+      name: 厨房
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.kewei
+      name: 客卫
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.yeelink_cn_2007278289_ceil45_s_2_light
+      name: 主卧
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.ruhu
+      name: 入户
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.lemesh_cn_782316947_wy02_s_2_light
+      name: 餐厅
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: custom:mushroom-light-card
+      entity: light.yeelink_cn_2006173280_ceil45_s_2_light
+      name: 弟弟房
+      show_brightness_control: true
+      use_light_color: true
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+  - type: grid
+    column_span: 1
+    cards:
+    - type: heading
+      heading: "Roborock 扫地机"
+    - type: custom:mushroom-vacuum-card
+      entity: vacuum.roborock
+      name: Roborock
+      icon_animation: true
+      commands:
+      - start_pause
+      - return_home
+      - locate
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+    - type: entities
+      title: 耗材剩余
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }
+      entities:
+      - entity: sensor.roborock_main_brush_left
+        name: 主刷
+        icon: mdi:circle-slice-8
+      - entity: sensor.roborock_side_brush_left
+        name: 边刷
+        icon: mdi:circle-slice-6
+      - entity: sensor.roborock_filter_left
+        name: 滤网
+        icon: mdi:air-filter
+      - entity: sensor.roborock_mop_left
+        name: 抹布
+        icon: mdi:water
+    - type: heading
+      heading: 媒体
+    - type: custom:mushroom-media-player-card
+      entity: media_player.living_room
+      use_media_info: true
+      use_media_artwork: true
+      show_volume_level: true
+      media_controls:
+      - previous
+      - play_pause_stop
+      - next
+      card_mod:
+        style: |
+          ha-card {
+            background: rgba(20,22,30,0.55) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+          }

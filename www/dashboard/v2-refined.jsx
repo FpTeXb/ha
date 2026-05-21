@@ -1,0 +1,643 @@
+/* V2 Refined — Real Home Assistant entities.
+   Interactive: click light dots to toggle, see lighten-blend overlays appear.
+   Layout: top bar / left rooms rail / centre floorplan / right climate rail / bottom strip.
+*/
+
+const { useState, useMemo, useCallback, useEffect } = React;
+
+/* Dual-axis sparkline: temperature (amber) + humidity (cyan), 24h */
+const TempHumidChart = () => {
+  // 24h hourly data — believable evening curve
+  const temps = [20.8,20.5,20.3,20.1,20.0,20.2,20.7,21.4,22.0,22.6,23.1,23.5,
+                 23.9,24.1,24.2,24.0,23.7,23.3,22.9,22.6,22.3,22.0,21.7,22.4];
+  const hums  = [52,53,54,55,55,55,54,52,49,47,45,43,41,40,39,40,42,44,46,48,49,50,51,48];
+  const W = 172, H = 56, PAD = 2;
+  const tMin = 18, tMax = 26;
+  const hMin = 30, hMax = 60;
+  const x = (i) => PAD + (i / (temps.length - 1)) * (W - PAD * 2);
+  const yT = (v) => PAD + (1 - (v - tMin) / (tMax - tMin)) * (H - PAD * 2);
+  const yH = (v) => PAD + (1 - (v - hMin) / (hMax - hMin)) * (H - PAD * 2);
+  const path = (data, fy) => data.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${fy(v).toFixed(1)}`).join(" ");
+  const nowI = temps.length - 1;
+
+  return (
+    <div style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 2 }}>
+        <span className="num" style={{ fontSize: 17, color: "var(--amber)" }}>{temps[nowI].toFixed(1)}<span style={{ fontSize: 9, color: "var(--fg-3)" }}>°C</span></span>
+        <span className="num" style={{ fontSize: 17, color: "var(--cyan)" }}>{hums[nowI]}<span style={{ fontSize: 9, color: "var(--fg-3)" }}>%</span></span>
+      </div>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+        <defs>
+          <linearGradient id="tFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="var(--amber)" stopOpacity="0.25"/>
+            <stop offset="100%" stopColor="var(--amber)" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        {/* gridline midpoint */}
+        <line x1={PAD} x2={W - PAD} y1={H / 2} y2={H / 2} stroke="rgba(255,255,255,0.05)" strokeDasharray="2 3"/>
+        {/* temp fill */}
+        <path d={`${path(temps, yT)} L${x(nowI)},${H - PAD} L${x(0)},${H - PAD} Z`} fill="url(#tFill)"/>
+        {/* humidity line */}
+        <path d={path(hums, yH)} fill="none" stroke="var(--cyan)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" opacity="0.85"/>
+        {/* temp line */}
+        <path d={path(temps, yT)} fill="none" stroke="var(--amber)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* now markers */}
+        <circle cx={x(nowI)} cy={yT(temps[nowI])} r="2.2" fill="var(--amber)"/>
+        <circle cx={x(nowI)} cy={yH(hums[nowI])} r="2.2" fill="var(--cyan)"/>
+      </svg>
+    </div>
+  );
+};
+
+const ROOM_GROUPS = [
+  { id: "living_area", name: "客厅", icon: "home", rooms: ["living", "balcony", "dining", "hall"] },
+  { id: "bedrooms", name: "卧室", icon: "bed", rooms: ["master", "brother", "sister"] },
+  { id: "bathrooms", name: "卫生间", icon: "drop", rooms: ["mbath", "gbath"] },
+  { id: "kitchen", name: "厨房", icon: "leaf", rooms: ["kitchen"] },
+  { id: "study", name: "书房", icon: "settings", rooms: ["study"] },
+];
+
+const assetUrl = (path) => {
+  const version = new URLSearchParams(location.search).get("v");
+  return version ? `${path}?v=${encodeURIComponent(version)}` : path;
+};
+
+const V2RefinedHA = () => {
+  // Real HA state — derive from window.__haStates (updated on every WS push)
+  const haStates = window.__haStates || {};
+  const hc = window.haClient;
+  const isOn = (id) => haStates[id]?.state === "on";
+  const climateActive = (id) => {
+    const s = haStates[id]?.state;
+    return s && s !== "off" && s !== "unavailable" && s !== "unknown";
+  };
+  const coverPos = (id) => {
+    const st = haStates[id];
+    if (!st) return 0;
+    const p = st.attributes?.current_position;
+    if (typeof p === "number") return p;
+    return st.state === "open" ? 100 : 0;
+  };
+
+  const onLights = useMemo(() => {
+    const s = new Set();
+    for (const l of LIGHTS) if (isOn(l.id)) s.add(l.id);
+    return s;
+  }, [haStates]);
+
+  const acOn = useMemo(() => {
+    const s = new Set();
+    for (const c of CLIMATES) if (climateActive(c.id)) s.add(c.id);
+    return s;
+  }, [haStates]);
+
+  const curtainOpen = useMemo(() => {
+    const m = {};
+    for (const c of CURTAINS) m[c.id] = coverPos(c.id);
+    return m;
+  }, [haStates]);
+
+  const acTargets = useMemo(() => {
+    const m = {};
+    for (const c of CLIMATES) {
+      const t = haStates[c.id]?.attributes?.temperature;
+      m[c.id] = typeof t === "number" ? Math.round(t) : c.target;
+    }
+    return m;
+  }, [haStates]);
+
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [activeScene, setActiveScene] = useState(null);
+  const [showAll, setShowAll] = useState(true);
+  const curtainClickTimersRef = React.useRef({});
+  const selectedRooms = useMemo(() => {
+    if (!selectedRoom) return null;
+    return new Set(ROOM_GROUPS.find(r => r.id === selectedRoom)?.rooms || [selectedRoom]);
+  }, [selectedRoom]);
+
+  // Live clock — tick every 20s
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 20000);
+    return () => clearInterval(t);
+  }, []);
+  const timeStr = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const dateStr = `周${"日一二三四五六"[now.getDay()]} · ${now.getMonth()+1}月${now.getDate()}日`;
+
+  // Weather — auto-pick first weather.* entity
+  const weatherEntity = useMemo(() => {
+    for (const k of Object.keys(haStates)) if (k.startsWith("weather.")) return k;
+    return null;
+  }, [haStates]);
+  const weather = weatherEntity ? haStates[weatherEntity] : null;
+  const WX_ICON = {
+    "sunny": "sun", "clear-night": "moon", "cloudy": "cloud", "partlycloudy": "cloud",
+    "rainy": "drop", "pouring": "drop", "snowy": "snow", "windy": "wind",
+    "fog": "cloud", "hail": "drop", "lightning": "bolt", "lightning-rainy": "bolt",
+  };
+  const WX_LABEL = {
+    "sunny": "晴", "clear-night": "夜间晴", "cloudy": "多云", "partlycloudy": "少云",
+    "rainy": "雨", "pouring": "大雨", "snowy": "雪", "windy": "大风",
+    "fog": "雾", "hail": "冰雹", "lightning": "雷", "lightning-rainy": "雷雨",
+  };
+  const wxIcon = weather ? (WX_ICON[weather.state] || "cloud") : "moon";
+  const wxLabel = weather ? (WX_LABEL[weather.state] || weather.state) : "—";
+  const wxTemp = weather?.attributes?.temperature;
+
+  // Weather forecast — subscribe when weather entity known
+  const [forecast, setForecast] = useState([]);
+  useEffect(() => {
+    if (!weatherEntity || !hc) return;
+    const unsub = hc.subscribeForecast(weatherEntity, (f) => {
+      setForecast(Array.isArray(f) ? f : []);
+    }, "daily");
+    return unsub;
+  }, [weatherEntity, hc]);
+  const bulkAcStaggerRef = React.useRef(null);
+  const bulkAc = useCallback((target, mode = "cool") => {
+    if (bulkAcStaggerRef.current) {
+      bulkAcStaggerRef.current.forEach(t => clearTimeout(t));
+    }
+    const timers = [];
+    CLIMATES.forEach((c, i) => {
+      const t = setTimeout(() => {
+        hc?.callService("climate", "set_hvac_mode", { entity_id: c.id, hvac_mode: mode });
+        hc?.callService("climate", "set_temperature", { entity_id: c.id, temperature: target });
+      }, (i + 1) * 2000);
+      timers.push(t);
+    });
+    bulkAcStaggerRef.current = timers;
+  }, [hc]);
+
+  const applyScene = useCallback((sceneId) => {
+    setActiveScene(sceneId);
+    if (sceneId === "scene.home") {
+      hc?.callService("scene", "turn_on", { entity_id: "scene.home_return" });
+    } else if (sceneId === "scene.away") {
+      hc?.callService("scene", "turn_on", { entity_id: "scene.home_away" });
+    } else if (sceneId === "scene.cool") {
+      bulkAc(22, "cool");
+    }
+  }, [bulkAc, hc]);
+
+  const toggleLight = useCallback((id) => {
+    hc?.callService("light", "toggle", { entity_id: id });
+  }, [hc]);
+  const toggleAc = (id) => {
+    if (climateActive(id)) {
+      hc?.callService("climate", "set_hvac_mode", { entity_id: id, hvac_mode: "off" });
+    } else {
+      hc?.callService("climate", "set_hvac_mode", { entity_id: id, hvac_mode: "cool" });
+    }
+  };
+  const allOff = () => {
+    for (const l of LIGHTS) if (isOn(l.id)) hc?.callService("light", "turn_off", { entity_id: l.id });
+  };
+  const setCurtainOpen = (updater) => {
+    const newMap = typeof updater === "function" ? updater(curtainOpen) : updater;
+    for (const c of CURTAINS) {
+      const cur = curtainOpen[c.id];
+      const next = newMap[c.id];
+      if (cur === next || next === undefined) continue;
+      if (next > 0) hc?.callService("cover", "open_cover", { entity_id: c.id });
+      else hc?.callService("cover", "close_cover", { entity_id: c.id });
+    }
+  };
+  const curtainPercent = (id) => curtainOpen[id] || 0;
+  const curtainDirection = (id) => haStates[id]?.attributes?.moving_direction || haStates[id]?.state;
+  const runCurtain = (id, service) => hc?.callService("cover", service, { entity_id: id });
+  const toggleCurtain = (id) => {
+    const state = haStates[id]?.state;
+    const percent = curtainPercent(id);
+    const direction = curtainDirection(id);
+    if (state === "opening" || state === "closing") {
+      runCurtain(id, "stop_cover");
+    } else if (state === "paused") {
+      runCurtain(id, direction === "opening" ? "open_cover" : "close_cover");
+    } else {
+      runCurtain(id, percent >= 100 ? "close_cover" : "open_cover");
+    }
+  };
+  const reverseCurtain = (id) => {
+    const direction = curtainDirection(id);
+    const percent = curtainPercent(id);
+    if (direction === "opening") {
+      runCurtain(id, "close_cover");
+    } else if (direction === "closing") {
+      runCurtain(id, "open_cover");
+    } else {
+      runCurtain(id, percent > 0 ? "close_cover" : "open_cover");
+    }
+  };
+  const handleCurtainClick = (id) => {
+    const timers = curtainClickTimersRef.current;
+    if (timers[id]) clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => {
+      delete timers[id];
+      toggleCurtain(id);
+    }, 230);
+  };
+  const handleCurtainDoubleClick = (id) => {
+    const timers = curtainClickTimersRef.current;
+    if (timers[id]) {
+      clearTimeout(timers[id]);
+      delete timers[id];
+    }
+    reverseCurtain(id);
+  };
+
+  // Stats
+  const roomCounts = useMemo(() => {
+    const m = {};
+    for (const group of ROOM_GROUPS) {
+      const rooms = new Set(group.rooms);
+      m[group.id] = { total: 0, on: 0 };
+      for (const l of LIGHTS) {
+        if (!rooms.has(l.room)) continue;
+        m[group.id].total += 1;
+        if (onLights.has(l.id)) m[group.id].on += 1;
+      }
+    }
+    return m;
+  }, [onLights]);
+  const totalLightsOn = onLights.size;
+  const totalAcOn = acOn.size;
+
+  // Filter lights by selected room (for highlighting)
+  const visibleLights = LIGHTS;
+
+  // Approx live power: 35W per active ceil + 15W per active spot + 700W per active AC
+  const livePower = useMemo(() => {
+    let w = 0;
+    for (const l of LIGHTS) if (onLights.has(l.id)) w += (l.kind === "spot" ? 15 : 35);
+    w += acOn.size * 720;
+    return w;
+  }, [onLights, acOn]);
+
+  return (
+    <div className="tablet">
+      <div className="wallpaper"/>
+
+      {/* ===== Top bar ===== */}
+      <div style={{
+        position: "absolute", top: 16, left: 20, right: 20, height: 56,
+        display: "flex", alignItems: "center", justifyContent: "space-between"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <Icon name="home" size={20} style={{ color: "var(--amber)" }}/>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span className="num" style={{ fontSize: 28, fontWeight: 200, letterSpacing: "-0.01em" }}>{timeStr}</span>
+            <span className="lab">{dateStr}</span>
+          </div>
+          <span className="chip"><span className="dot mint"></span> 全部正常</span>
+          <span className="chip"><Icon name="bulb" size={11} style={{ color: "var(--amber)" }}/> {totalLightsOn} 盏开启</span>
+          <span className="chip"><Icon name="snow" size={11} style={{ color: "var(--cyan)" }}/> {totalAcOn} 台空调</span>
+          <span className="chip"><Icon name="cam" size={11} style={{ color: "var(--mint)" }}/> 4 摄像头</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, color: "var(--fg-2)" }}>
+          <WeatherChip temp={typeof wxTemp === "number" ? Math.round(wxTemp) : "--"} label={wxLabel} icon={wxIcon}/>
+          {forecast.length > 0 && <div style={{ width: 1, height: 36, background: "var(--stroke)" }}/>}
+          {forecast.slice(0, 3).map((f, i) => {
+            const d = new Date(f.datetime);
+            const wd = "周" + "日一二三四五六"[d.getDay()];
+            const ic = WX_ICON[f.condition] || "cloud";
+            const hi = f.temperature;
+            const lo = f.templow;
+            return (
+              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, minWidth: 38 }}>
+                <span className="lab" style={{ fontSize: 9 }}>{wd}</span>
+                <Icon name={ic} size={14} style={{ color: "var(--fg-2)" }}/>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
+                  <span className="num" style={{ fontSize: 11, color: "var(--fg)", fontWeight: 500 }}>{typeof hi === "number" ? Math.round(hi) : "--"}°</span>
+                  <span className="num" style={{ fontSize: 9, color: "var(--fg-3)" }}>{typeof lo === "number" ? Math.round(lo) : "--"}°</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Left rail — rooms ===== */}
+      <div className="glass" style={{
+        position: "absolute", left: 20, top: 84, bottom: 176, width: 184,
+        padding: 12, display: "flex", flexDirection: "column", gap: 6
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 6px 6px" }}>
+          <span className="eyebrow">房间</span>
+          <span className="num lab">{ROOM_GROUPS.length}</span>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }} className="no-scrollbar">
+          {ROOM_GROUPS.map(r => {
+            const c = roomCounts[r.id] || { total: 0, on: 0 };
+            const sel = selectedRoom === r.id;
+            const hasOn = c.on > 0;
+            return (
+              <div key={r.id}
+                   className={`room-row ${sel ? "sel" : ""} ${hasOn ? "has-on" : ""}`}
+                   onClick={() => setSelectedRoom(sel ? null : r.id)}>
+                <div className="ico"><Icon name={r.icon} size={15}/></div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: sel ? "var(--fg)" : "var(--fg-2)" }}>{r.name}</div>
+                  <div className="lab" style={{ fontSize: 10, marginTop: 1 }}>
+                    {c.on}/{c.total} 灯
+                  </div>
+                </div>
+                {hasOn && <span className="dot amber" style={{ width: 6, height: 6 }}/>}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: 6, paddingTop: 6, borderTop: "1px solid var(--stroke)" }}>
+          <div className="tap glass-strong" style={{ flex: 1, padding: "8px", borderRadius: 10, textAlign: "center", fontSize: 12, color: "var(--fg-2)" }}
+               onClick={allOff}>
+            全部关闭
+          </div>
+          <div className="tap glass-strong" style={{ width: 36, padding: "8px", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fg-2)" }}
+               onClick={() => setShowAll(v => !v)} title="开关其他">
+            <Icon name={showAll ? "wifi" : "wifi"} size={13}/>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== Centre — floorplan ===== */}
+      <div className="glass" style={{
+        position: "absolute", left: 216, right: 216, top: 84, bottom: 176,
+        padding: 12, display: "flex", flexDirection: "column", gap: 8
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span className="eyebrow">
+            {selectedRoom ? ROOMS.find(r => r.id === selectedRoom)?.name : "我的家 · 户型"}
+          </span>
+          <div style={{ display: "flex", gap: 6 }}>
+            <span className="chip"><Icon name="thermo" size={11}/> 室内 22.4° · 湿 48%</span>
+            {(() => {
+              const pm = 12;
+              const col = pm < 50 ? "var(--mint)" : pm < 100 ? "var(--amber)" : "var(--rose)";
+              return (
+                <span className="chip" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Icon name="wave" size={11} style={{ color: col }}/>
+                  <span style={{ fontSize: 9, color: "var(--fg-3)", letterSpacing: "0.04em" }}>PM2.5</span>
+                  <span className="num" style={{ fontSize: 15, color: col, fontWeight: 500, lineHeight: 1 }}>{pm}</span>
+                </span>
+              );
+            })()}
+            <span className="chip"><Icon name="bolt" size={11} style={{ color: "var(--mint)" }}/> <span className="num">{livePower}</span> W</span>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0 }}>
+          <div style={{ position: "relative", width: "100%", maxWidth: "100%" }}>
+            <div className="fp-stack">
+              <img className="fp-base" src={assetUrl(FLOORPLAN_BASE)} alt=""/>
+              {/* Light render overlays */}
+              {LIGHTS.filter(l => l.hasRender).map(l => (
+                <img key={l.id}
+                     className={`fp-on ${onLights.has(l.id) ? "active" : ""}`}
+                     src={assetUrl(`assets/floorplan/${l.id}.png`)} alt=""/>
+              ))}
+
+              {/* Light dots */}
+              {visibleLights.map(l => {
+                const on = onLights.has(l.id);
+                const dim = selectedRooms && !selectedRooms.has(l.room);
+                if (!showAll && !on) return null;
+                return (
+                  <div key={l.id}
+                       className={`lite-dot ${l.kind === "spot" ? "spot" : ""} ${on ? "on" : ""}`}
+                       style={{
+                         left: `${l.x}%`, top: `${l.y}%`,
+                         opacity: dim ? 0.25 : 1,
+                       }}
+                       onClick={() => toggleLight(l.id)}>
+                    <Icon name="bulb" size={l.kind === "spot" ? 10 : 13}/>
+                    <span className="dot-tip">{l.name}</span>
+                  </div>
+                );
+              })}
+
+              {/* Climate dots */}
+              {CLIMATES.map(c => {
+                const on = acOn.has(c.id);
+                const heat = (acTargets[c.id] ?? c.target) >= 26;
+                const dim = selectedRooms && !selectedRooms.has(c.room);
+                return (
+                  <div key={c.id}
+                       className={`dev-dot ac ${on ? "on" : ""} ${heat ? "heat" : ""}`}
+                       style={{ left: `${c.x}%`, top: `${c.y}%`, opacity: dim ? 0.25 : 1 }}
+                       onClick={() => toggleAc(c.id)}>
+                    <Icon name={heat ? "sun" : "snow"} size={10}/>
+                    <span className="dot-tip">{c.name} · {acTargets[c.id] ?? c.target}°</span>
+                  </div>
+                );
+              })}
+
+              {/* Curtain dots */}
+              {CURTAINS.map(cv => {
+                const open = curtainOpen[cv.id] || 0;
+                const active = open > 0;
+                const dim = selectedRooms && !selectedRooms.has(cv.room);
+                return (
+                  <div key={cv.id}
+                       className={`dev-dot cur ${active ? "on" : ""}`}
+                       style={{ left: `${cv.x}%`, top: `${cv.y}%`, opacity: dim ? 0.25 : active ? 1 : 0.28 }}
+                       onClick={() => handleCurtainClick(cv.id)}
+                       onDoubleClick={() => handleCurtainDoubleClick(cv.id)}>
+                    <Icon name="blinds" size={10}/>
+                    <span className="dot-tip">{cv.name} · {open}%</span>
+                  </div>
+                );
+              })}
+
+              {/* Legend */}
+              <div className="fp-overlay-chip" style={{ left: 10, bottom: 10 }}>
+                <span className="dot amber" style={{ width: 6, height: 6 }}/> 灯
+                <span className="dot cyan" style={{ width: 6, height: 6, marginLeft: 8 }}/> 空调
+                <span className="dot mint" style={{ width: 6, height: 6, marginLeft: 8 }}/> 窗帘
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== Right rail — climate + sensors ===== */}
+      <div style={{
+        position: "absolute", right: 20, top: 84, bottom: 176, width: 184,
+        display: "flex", flexDirection: "column", gap: 12
+      }}>
+        {/* Climate compact list */}
+        <div className="glass" style={{ flex: 1, minHeight: 0, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="eyebrow">空调</span>
+            <span className="num lab">{acOn.size}/{CLIMATES.length}</span>
+          </div>
+          <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+          {CLIMATES.map(c => {
+            const on = acOn.has(c.id);
+            const tgt = acTargets[c.id];
+            const heat = tgt >= 26;
+            const accent = heat ? "var(--amber)" : "var(--cyan)";
+            const accentBg = heat ? "rgba(228,170,90,0.10)" : "rgba(120,180,230,0.10)";
+            const accentBorder = heat ? "rgba(228,170,90,0.3)" : "rgba(120,180,230,0.3)";
+            return (
+              <div key={c.id} className={`ac-row ${on ? "on" : ""}`}
+                   style={on ? { background: accentBg, borderColor: accentBorder } : undefined}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: on ? "var(--fg)" : "var(--fg-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
+                  <div className="lab" style={{ fontSize: 11, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {on ? `现 ${c.current}°` : `待机 · 现 ${c.current}°`}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  {on && <span className="num" style={{ fontSize: 14, color: accent, marginRight: 4 }}>{acTargets[c.id]}°</span>}
+                  <span className={`sw sw-mini ${on ? "on" : ""}`} style={{ width: 32, height: 18, background: on ? accent : "rgba(255,255,255,0.10)" }}
+                        onClick={() => toggleAc(c.id)}>
+                    <span style={{ position: "absolute", top: 2, left: on ? 16 : 2, width: 14, height: 14, borderRadius: "50%", background: "#fff", transition: "left 200ms" }}/>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          </div>
+          <div style={{ display: "flex", gap: 6, paddingTop: 8, borderTop: "1px solid var(--stroke)" }}>
+            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 5px", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 11, color: "var(--cyan)" }}
+                 onClick={() => bulkAc(22, "cool")}>
+              <Icon name="snow" size={11}/> 22°
+            </div>
+            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 5px", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 11, color: "var(--amber)" }}
+                 onClick={() => bulkAc(30, "heat")}>
+              <Icon name="sun" size={11}/> 30°
+            </div>
+            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 5px", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 11, color: "var(--fg-2)" }}
+                  onClick={() => {
+                    for (const c of CLIMATES) hc?.callService("climate", "set_hvac_mode", { entity_id: c.id, hvac_mode: "off" });
+                  }}>
+              <Icon name="power" size={11}/> 关闭
+            </div>
+          </div>
+        </div>
+
+        {/* Energy */}
+      </div>
+
+      {/* ===== Bottom strip — scenes, curtains, media ===== */}
+      <div style={{
+        position: "absolute", left: 20, right: 20, bottom: 16, height: 148,
+        display: "flex", gap: 12
+      }}>
+        {/* Scenes */}
+        <div className="glass" style={{ flex: 0.85, padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="eyebrow">场景</span>
+            <span className="lab" style={{ fontSize: 10 }}>{SCENES.length}</span>
+          </div>
+          <div style={{ flex: 1, display: "flex", gap: 6 }}>
+            {SCENES.map(s => (
+              <div key={s.id} className={`scene-tile ${activeScene === s.id ? "on" : ""}`}
+                   onClick={() => applyScene(s.id)}>
+                <Icon name={s.icon} size={18}/>
+                <span style={{ fontSize: 11 }}>{s.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Curtains */}
+        <div className="glass" style={{ flex: 1, padding: 12, display: "flex", flexDirection: "column", gap: 6, minHeight: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="eyebrow">窗帘</span>
+            <span className="num lab" style={{ fontSize: 10 }}>打开 {Object.values(curtainOpen).filter(v => v > 0).length}/{CURTAINS.length}</span>
+          </div>
+          <div style={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "repeat(3, minmax(0, 1fr))", gap: 5 }}>
+            {CURTAINS.map(cv => {
+              const v = curtainOpen[cv.id] || 0;
+              const state = haStates[cv.id]?.state;
+              const moving = state === "opening" || state === "closing";
+              return (
+                <div key={cv.id} className="tap" style={{
+                  padding: "4px 8px", borderRadius: 8, display: "flex", flexDirection: "column", justifyContent: "center", gap: 4, minHeight: 0,
+                  background: v > 0 ? "rgba(140,220,180,0.10)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${moving || v > 0 ? "rgba(140,220,180,0.34)" : "var(--stroke)"}`,
+                }}
+                     onClick={() => handleCurtainClick(cv.id)}
+                     onDoubleClick={() => handleCurtainDoubleClick(cv.id)}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, minWidth: 0 }}>
+                    <span style={{ fontSize: 11, color: v > 0 ? "var(--fg)" : "var(--fg-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cv.name}</span>
+                    <span style={{ fontSize: 10, color: v > 0 ? "var(--mint)" : "var(--fg-2)", flexShrink: 0 }} className="num">{v}%</span>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ width: `${v}%`, height: "100%", background: "var(--mint)", transition: "width 210ms linear" }}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Robot vacuum quick card */}
+        <div className="glass" style={{ flex: "0 0 240px", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Icon name="vacuum" size={14} style={{ color: "var(--fg-2)" }}/>
+            <span className="eyebrow">Roborock</span>
+            <span className="chip" style={{ marginLeft: "auto", padding: "2px 6px", fontSize: 9 }}>
+              <span className="dot mint" style={{ width: 5, height: 5 }}/> 充电中 · 87%
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 5 }}>
+            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
+              <Icon name="play" size={12} style={{ color: "var(--cyan)" }}/>
+              全屋
+            </div>
+            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
+              <Icon name="leaf" size={12} style={{ color: "var(--mint)" }}/>
+              饭后
+            </div>
+            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
+              <Icon name="home" size={12} style={{ color: "var(--amber)" }}/>
+              回充
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {[
+              { label: "主刷", v: 78, c: "var(--mint)" },
+              { label: "边刷", v: 62, c: "var(--mint)" },
+              { label: "滤网", v: 34, c: "var(--amber)" },
+              { label: "抹布", v: 12, c: "var(--rose)" },
+            ].map((s, i) => (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                <div style={{ fontSize: 10, color: "var(--fg-2)" }}>{s.label}</div>
+                <div style={{ width: "100%", height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ width: `${s.v}%`, height: "100%", background: s.c }}/>
+                </div>
+                <div className="num" style={{ fontSize: 10, color: s.c, lineHeight: 1 }}>{s.v}%</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Media */}
+        <div className="glass" style={{ flex: 1.1, padding: 12, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 12, background: "linear-gradient(135deg, oklch(0.55 0.16 290), oklch(0.45 0.18 320))", flexShrink: 0 }}/>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>晚安城市</div>
+            <div className="lab" style={{ fontSize: 11 }}>陈奕迅 · 客厅 Sonos</div>
+            <div className="track" style={{ height: 3 }}>
+              <div className="fill" style={{ width: "42%", background: "var(--violet)" }}/>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div className="tap" style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--violet)", color: "#0a0a0a" }}>
+              <Icon name="pause" size={14}/>
+            </div>
+            <div style={{ display: "flex", gap: 4 }}>
+              <div className="tap glass-strong" style={{ width: 16, height: 16, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="skip-prev" size={9}/></div>
+              <div className="tap glass-strong" style={{ width: 16, height: 16, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="skip-next" size={9}/></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+window.V2RefinedHA = V2RefinedHA;

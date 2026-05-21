@@ -183,11 +183,11 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
 .fp-stack .fp-on   { mix-blend-mode: lighten; opacity: 0; transition: opacity 350ms ease; }
 .fp-stack .fp-on.active { opacity: 1; }
 
-/* Clickable light dot */
+/* Clickable light fixtures */
 .lite-dot {
   position: absolute; transform: translate(-50%, -50%);
   width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(20,22,30,0.55);
+  background: rgba(20,22,30,0.50);
   border: 1.5px solid rgba(255,255,255,0.35);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all 180ms ease;
@@ -195,16 +195,63 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   -webkit-backdrop-filter: blur(6px);
   color: rgba(255,255,255,0.55);
   z-index: 3;
+  box-shadow: inset 0 0 8px rgba(255,255,255,0.08);
 }
 .lite-dot:hover { transform: translate(-50%, -50%) scale(1.18); border-color: rgba(255,255,255,0.7); }
 .lite-dot.on {
-  background: var(--amber);
-  border-color: rgba(255,255,255,0.9);
+  background: rgba(255, 197, 122, 0.38);
+  border-color: rgba(255,255,255,0.46);
   color: #2a1d05;
-  box-shadow: 0 0 0 4px rgba(255, 197, 122, 0.18), 0 0 16px rgba(255,197,122,0.55);
+  box-shadow: 0 0 0 2px rgba(255, 197, 122, 0.07), 0 0 9px rgba(255,197,122,0.22);
 }
-.lite-dot.spot { width: 18px; height: 18px; }
-.lite-dot.spot.on { box-shadow: 0 0 0 3px rgba(255, 197, 122, 0.2), 0 0 14px rgba(255,197,122,0.55); }
+.lite-dot .fixture-core {
+  display: block;
+  width: 42%;
+  height: 42%;
+  border-radius: inherit;
+  background: rgba(255,255,255,0.20);
+  box-shadow: inset 0 0 4px rgba(255,255,255,0.12);
+}
+.lite-dot.on .fixture-core {
+  background: rgba(255,255,255,0.24);
+}
+.lite-dot.ceiling-xl { width: 28px; height: 28px; }
+.lite-dot.ceiling-md { width: 22px; height: 22px; }
+.lite-dot.ceiling-sm { width: 18px; height: 18px; }
+.lite-dot.linear {
+  width: 68px;
+  height: 7px;
+  border-radius: 999px;
+}
+.lite-dot.linear .fixture-core {
+  width: 82%;
+  height: 2px;
+  border-radius: 999px;
+}
+.lite-dot.dining-linear {
+  transform: translate(-50%, -50%) rotate(86deg);
+}
+.lite-dot.dining-linear:hover {
+  transform: translate(-50%, -50%) rotate(86deg) scale(1.08);
+}
+.lite-dot.spot {
+  width: 14px;
+  height: 14px;
+  border-width: 1.2px;
+}
+.lite-dot.spot .fixture-core {
+  width: 4px;
+  height: 4px;
+  background: rgba(255,255,255,0.32);
+}
+.lite-dot.spot::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.lite-dot.spot.on { box-shadow: 0 0 0 2px rgba(255, 197, 122, 0.08), 0 0 8px rgba(255,197,122,0.22); }
 
 /* Climate / curtain dot */
 .dev-dot {
@@ -333,9 +380,9 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   100% { transform: translateX(0) translateY(14px); opacity: 0; }
 }
 @keyframes ac-heat-flow {
-  0% { transform: translateX(0) translateY(14px); opacity: 0; }
+  0% { transform: translateX(0) translateY(-10px); opacity: 0; }
   45% { opacity: 0.9; }
-  100% { transform: translateX(0) translateY(-10px); opacity: 0; }
+  100% { transform: translateX(0) translateY(14px); opacity: 0; }
 }
 
 /* Room card in left rail */

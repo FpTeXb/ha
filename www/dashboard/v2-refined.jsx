@@ -62,6 +62,16 @@ const assetUrl = (path) => {
   return version ? `${path}?v=${encodeURIComponent(version)}` : path;
 };
 
+const lightFixtureClass = (light) => {
+  if (light.name === "客厅") return "ceiling-xl";
+  if (light.name === "餐厅") return "linear dining-linear";
+  if (["主卧", "弟弟房", "姐姐房", "书房"].includes(light.name)) return "ceiling-md";
+  if (["主卫", "客卫"].includes(light.name)) return "ceiling-sm";
+  if (["走道", "入户", "窗台射灯", "窗台筒灯", "主卧射灯", "洗手台"].includes(light.name)) return "spot";
+  if (light.kind === "spot") return "spot";
+  return "ceiling-sm";
+};
+
 const V2RefinedHA = () => {
   // Real HA state — derive from window.__haStates (updated on every WS push)
   const haStates = window.__haStates || {};
@@ -403,13 +413,13 @@ const V2RefinedHA = () => {
                 if (!showAll && !on) return null;
                 return (
                   <div key={l.id}
-                       className={`lite-dot ${l.kind === "spot" ? "spot" : ""} ${on ? "on" : ""}`}
+                       className={`lite-dot ${lightFixtureClass(l)} ${on ? "on" : ""}`}
                        style={{
-                         left: `${l.x}%`, top: `${l.y}%`,
-                         opacity: dim ? 0.25 : 1,
-                       }}
+                          left: `${l.x}%`, top: `${l.name === "餐厅" ? l.y + 1.5 : l.y}%`,
+                          opacity: dim ? 0.25 : 1,
+                        }}
                        onClick={() => toggleLight(l.id)}>
-                    <Icon name="bulb" size={l.kind === "spot" ? 10 : 13}/>
+                    <span className="fixture-core"/>
                     <span className="dot-tip">{l.name}</span>
                   </div>
                 );
@@ -421,10 +431,11 @@ const V2RefinedHA = () => {
                 const heat = (acTargets[c.id] ?? c.target) >= 26;
                 const dim = selectedRooms && !selectedRooms.has(c.room);
                 const flipped = c.room === "brother" || c.room === "study";
+                const topOffset = c.room === "study" ? -3.5 : flipped ? -2 : 0;
                 return (
                   <div key={c.id}
                        className={`ac-flow ${on ? "on" : ""} ${heat ? "heat" : "cool"} ${flipped ? "flip" : ""}`}
-                       style={{ left: `${c.x}%`, top: `${flipped ? c.y - 2 : c.y}%`, opacity: dim ? 0.25 : 1 }}
+                       style={{ left: `${c.x}%`, top: `${c.y + topOffset}%`, opacity: dim ? 0.25 : 1 }}
                        onClick={() => toggleAc(c.id)}>
                     <span className="ac-vent"/>
                     <span className="air air-1"/>

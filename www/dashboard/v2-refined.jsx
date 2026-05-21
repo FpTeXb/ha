@@ -420,12 +420,16 @@ const V2RefinedHA = () => {
                 const on = acOn.has(c.id);
                 const heat = (acTargets[c.id] ?? c.target) >= 26;
                 const dim = selectedRooms && !selectedRooms.has(c.room);
+                const flipped = c.room === "brother" || c.room === "study";
                 return (
                   <div key={c.id}
-                       className={`dev-dot ac ${on ? "on" : ""} ${heat ? "heat" : ""}`}
-                       style={{ left: `${c.x}%`, top: `${c.y}%`, opacity: dim ? 0.25 : 1 }}
+                       className={`ac-flow ${on ? "on" : ""} ${heat ? "heat" : "cool"} ${flipped ? "flip" : ""}`}
+                       style={{ left: `${c.x}%`, top: `${flipped ? c.y - 2 : c.y}%`, opacity: dim ? 0.25 : 1 }}
                        onClick={() => toggleAc(c.id)}>
-                    <Icon name={heat ? "sun" : "snow"} size={10}/>
+                    <span className="ac-vent"/>
+                    <span className="air air-1"/>
+                    <span className="air air-2"/>
+                    <span className="air air-3"/>
                     <span className="dot-tip">{c.name} · {acTargets[c.id] ?? c.target}°</span>
                   </div>
                 );

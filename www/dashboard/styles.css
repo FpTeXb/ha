@@ -217,8 +217,6 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   backdrop-filter: blur(6px);
   color: rgba(255,255,255,0.55); z-index: 3;
 }
-.dev-dot.ac.on { background: var(--cyan); color: #04161e; border-color: rgba(255,255,255,0.85); box-shadow: 0 0 12px rgba(140,200,240,0.55); }
-.dev-dot.ac.on.heat { background: var(--amber); color: #1f1207; box-shadow: 0 0 12px rgba(228,170,90,0.6); }
 .dev-dot.cur.on { background: var(--mint); color: #04231a; border-color: rgba(255,255,255,0.85); }
 .dev-dot.cur.moving {
   animation: curtain-dot-pulse 900ms ease-in-out infinite;
@@ -264,6 +262,81 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   opacity: 0; transition: opacity 120ms ease;
 }
 .lite-dot:hover .dot-tip, .dev-dot:hover .dot-tip { opacity: 1; }
+
+/* Air conditioner airflow marker */
+.ac-flow {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  height: 34px;
+  cursor: pointer;
+  z-index: 3;
+  color: rgba(255,255,255,0.55);
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+.ac-flow.flip {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+.ac-flow .ac-vent {
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  width: 30px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(20,22,30,0.58);
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(6px);
+}
+.ac-flow .air {
+  position: absolute;
+  width: 2px;
+  border-radius: 999px;
+  opacity: 0.28;
+  background: rgba(255,255,255,0.45);
+  transform-origin: center top;
+}
+.ac-flow .air-1 { left: 17px; top: 15px; height: 16px; }
+.ac-flow .air-2 { left: 25px; top: 15px; height: 24px; }
+.ac-flow .air-3 { left: 33px; top: 15px; height: 18px; }
+.ac-flow.on .ac-vent {
+  border-color: rgba(255,255,255,0.75);
+}
+.ac-flow.on.cool .ac-vent {
+  box-shadow: 0 0 14px rgba(120,180,230,0.35);
+}
+.ac-flow.on.heat .ac-vent {
+  box-shadow: 0 0 14px rgba(228,170,90,0.38);
+}
+.ac-flow.on.cool .air {
+  background: linear-gradient(180deg, rgba(120,180,230,0), rgba(120,210,255,0.95), rgba(120,180,230,0));
+  box-shadow: 0 0 8px rgba(120,210,255,0.45);
+  animation: ac-cool-flow 1100ms ease-in-out infinite;
+}
+.ac-flow.on.heat .air {
+  background: linear-gradient(180deg, rgba(228,170,90,0), rgba(255,200,120,0.95), rgba(228,170,90,0));
+  box-shadow: 0 0 8px rgba(255,190,110,0.48);
+  animation: ac-heat-flow 1300ms ease-in-out infinite;
+}
+.ac-flow.on .air-2 { animation-delay: 160ms; }
+.ac-flow.on .air-3 { animation-delay: 320ms; }
+.ac-flow:not(.on) .air { animation: none; }
+.ac-flow:hover { filter: brightness(1.18); }
+.ac-flow:hover .dot-tip { opacity: 1; }
+.ac-flow.flip .dot-tip {
+  transform: translateX(-50%) rotate(180deg);
+}
+
+@keyframes ac-cool-flow {
+  0% { transform: translateX(0) translateY(-10px); opacity: 0; }
+  45% { opacity: 0.95; }
+  100% { transform: translateX(0) translateY(14px); opacity: 0; }
+}
+@keyframes ac-heat-flow {
+  0% { transform: translateX(0) translateY(14px); opacity: 0; }
+  45% { opacity: 0.9; }
+  100% { transform: translateX(0) translateY(-10px); opacity: 0; }
+}
 
 /* Room card in left rail */
 .room-row {

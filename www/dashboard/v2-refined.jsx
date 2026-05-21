@@ -435,10 +435,12 @@ const V2RefinedHA = () => {
               {CURTAINS.map(cv => {
                 const open = curtainOpen[cv.id] || 0;
                 const active = open > 0;
+                const state = haStates[cv.id]?.state;
+                const moving = state === "opening" || state === "closing";
                 const dim = selectedRooms && !selectedRooms.has(cv.room);
                 return (
                   <div key={cv.id}
-                       className={`dev-dot cur ${active ? "on" : ""}`}
+                       className={`dev-dot cur ${active ? "on" : ""} ${moving ? "moving" : ""}`}
                        style={{ left: `${cv.x}%`, top: `${cv.y}%`, opacity: dim ? 0.25 : active ? 1 : 0.28 }}
                        onClick={() => handleCurtainClick(cv.id)}
                        onDoubleClick={() => handleCurtainDoubleClick(cv.id)}>
@@ -553,7 +555,7 @@ const V2RefinedHA = () => {
               const state = haStates[cv.id]?.state;
               const moving = state === "opening" || state === "closing";
               return (
-                <div key={cv.id} className="tap" style={{
+                <div key={cv.id} className={`tap curtain-card ${moving ? "moving" : ""}`} style={{
                   padding: "4px 8px", borderRadius: 8, display: "flex", flexDirection: "column", justifyContent: "center", gap: 4, minHeight: 0,
                   background: v > 0 ? "rgba(140,220,180,0.10)" : "rgba(255,255,255,0.03)",
                   border: `1px solid ${moving || v > 0 ? "rgba(140,220,180,0.34)" : "var(--stroke)"}`,
@@ -565,7 +567,7 @@ const V2RefinedHA = () => {
                     <span style={{ fontSize: 10, color: v > 0 ? "var(--mint)" : "var(--fg-2)", flexShrink: 0 }} className="num">{v}%</span>
                   </div>
                   <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                    <div style={{ width: `${v}%`, height: "100%", background: "var(--mint)", transition: "width 210ms linear" }}/>
+                    <div className={`curtain-fill ${moving ? "moving" : ""}`} style={{ width: `${v}%`, height: "100%", transition: "width 210ms linear" }}/>
                   </div>
                 </div>
               );

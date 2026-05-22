@@ -1,0 +1,818 @@
+type: picture-elements
+image: /local/floorplan/transparent.png?version=A2DB02EBB813922562DF07E8F70D6F47
+elements:
+  - type: conditional
+    title: Base
+    conditions:
+      []
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/base.png?version=07446B5A39943D71E08F910A1DAA694E
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+  - type: conditional
+    title: light.yeelink_cn_2027394738_ceil47_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2027394738_ceil47_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2027394738_ceil47_s_2_light.png?version=0EB1E66166832041E1C9994DD38FABB7
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_962306557_ceil45_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_962306557_ceil45_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_962306557_ceil45_s_2_light.png?version=E7EC9BEFC7F2EF089CDA1CE63909B972
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2103176439_ml13_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2103176439_ml13_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2103176439_ml13_s_2_light.png?version=38FEF9341E9E32387FA9F4A23A462759
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_950517169_panel6_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_950517169_panel6_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_950517169_panel6_s_2_light.png?version=08232B3B55F882D6D61BC75C4894A51E
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2104008081_ml13_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2104008081_ml13_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2104008081_ml13_s_2_light.png?version=D4DF059D8EDE7B721EB733DDBB358BC2
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.kewei
+    conditions:
+      - condition: state
+        entity: light.kewei
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.kewei.png?version=E81C1073DB85E9206A970D031D0C556A
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.zoudao
+    conditions:
+      - condition: state
+        entity: light.zoudao
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.zoudao.png?version=E3E8C41A80B0C82EB10C1D6F1988FBE7
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2008384777_ceil45_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2008384777_ceil45_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2008384777_ceil45_s_2_light.png?version=A26A2502B8346DE07B063F19DC722B5E
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2080481036_ml13_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2080481036_ml13_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2080481036_ml13_s_2_light.png?version=BE674E3B0B1E513A3ED5DD41450C0217
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2076746268_ml13_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2076746268_ml13_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2076746268_ml13_s_2_light.png?version=4B6A99E1FB5A5321291A14327CCAFA83
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2007278289_ceil45_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2007278289_ceil45_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2007278289_ceil45_s_2_light.png?version=C215607CA7CE98FDDA4546A269880AA7
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.zhuwei
+    conditions:
+      - condition: state
+        entity: light.zhuwei
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.zhuwei.png?version=F5D91BB119F9B3940B56E40EE8591B94
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.ruhu
+    conditions:
+      - condition: state
+        entity: light.ruhu
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.ruhu.png?version=7E8DB0BAEE40ADA290B2857C0F33FF0F
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.lemesh_cn_782316947_wy02_s_2_light
+    conditions:
+      - condition: state
+        entity: light.lemesh_cn_782316947_wy02_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.lemesh_cn_782316947_wy02_s_2_light.png?version=E9BD8C16CEDA425F114B2FCDA95204F2
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.xiaomi_cn_995127909_pro2_s_3_light
+    conditions:
+      - condition: state
+        entity: light.xiaomi_cn_995127909_pro2_s_3_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.xiaomi_cn_995127909_pro2_s_3_light.png?version=EDDA4AB5B5596CE48F9969352D4891B0
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2001142567_ml13_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2001142567_ml13_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2001142567_ml13_s_2_light.png?version=DDB277E49A5ADDD928D28FD5CC5691B1
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: conditional
+    title: light.yeelink_cn_2006173280_ceil45_s_2_light
+    conditions:
+      - condition: state
+        entity: light.yeelink_cn_2006173280_ceil45_s_2_light
+        state: 'on'
+    elements:
+      - type: image
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        image: /local/floorplan/light.yeelink_cn_2006173280_ceil45_s_2_light.png?version=4C1B3AE455A701247C232979E3D36E70
+        filter: none
+        style:
+          left: 50%
+          top: 50%
+          width: 100%
+          mix-blend-mode: lighten
+  - type: state-icon
+    entity: light.yeelink_cn_2027394738_ceil47_s_2_light
+    title: ¿ÍÌü
+    style:
+      top: 52.33%
+      left: 43.88%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.zoudao
+    title: ×ßµÀ
+    style:
+      top: 42.93%
+      left: 65.59%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2008384777_ceil45_s_2_light
+    title: ½ã½ã·¿
+    style:
+      top: 60.57%
+      left: 83.32%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2076746268_ml13_s_2_light
+    title: ´°Ì¨ÉäµÆ
+    style:
+      top: 68.74%
+      left: 59.33%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.zhuwei
+    title: Ö÷ÎÀµÆ
+    style:
+      top: 44.80%
+      left: 21.72%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.xiaomi_cn_995127909_pro2_s_3_light
+    title: ÑôÌ¨
+    style:
+      top: 75.17%
+      left: 47.13%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2001142567_ml13_s_2_light
+    title: ´°Ì¨Í²µÆ
+    style:
+      top: 68.85%
+      left: 66.46%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_962306557_ceil45_s_2_light
+    title: Êé·¿
+    style:
+      top: 31.81%
+      left: 52.84%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2103176439_ml13_s_2_light
+    title: Ï´ÊÖÌ¨
+    style:
+      top: 37.14%
+      left: 41.63%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_950517169_panel6_s_2_light
+    title: ³ø·¿µÆ
+    style:
+      top: 37.23%
+      left: 66.29%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2104008081_ml13_s_2_light
+    title: ³ø·¿ÉäµÆ
+    style:
+      top: 31.84%
+      left: 65.61%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.kewei
+    title: ¿ÍÎÀµÆ
+    style:
+      top: 32.12%
+      left: 40.85%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2080481036_ml13_s_2_light
+    title: Ö÷ÎÔÉäµÆ
+    style:
+      top: 44.73%
+      left: 28.51%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2007278289_ceil45_s_2_light
+    title: Ö÷ÎÔ
+    style:
+      top: 62.91%
+      left: 18.74%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.ruhu
+    title: Èë»§µÆ
+    style:
+      top: 42.87%
+      left: 80.92%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.lemesh_cn_782316947_wy02_s_2_light
+    title: ²ÍÌü
+    style:
+      top: 52.56%
+      left: 60.33%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: light.yeelink_cn_2006173280_ceil45_s_2_light
+    title: µÜµÜ·¿
+    style:
+      top: 31.26%
+      left: 28.26%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: climate.yj1226_cn_2141905179_air
+    title: ½ã½ã¿Õµ÷
+    style:
+      top: 47.68%
+      left: 79.67%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: climate.yj1226_cn_2141895500_air
+    title: ¿ÍÌü¿Õµ÷2
+    style:
+      top: 40.61%
+      left: 45.42%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: climate.yj1226_cn_2141905191_air
+    title: Ö÷ÎÔ¿Õµ÷
+    style:
+      top: 49.13%
+      left: 24.29%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: cover.xiaomi_cn_875659223_acn010_s_2_curtain
+    title: ½ã½ã·¿´°Á±¹Ø±Õ
+    style:
+      top: 73.70%
+      left: 81.94%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: cover.xiaomi_cn_877631852_acn010_s_2_curtain
+    title: µÜµÜ´°Á±¹Ø±Õ
+    style:
+      top: 27.14%
+      left: 41.58%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: cover.xiaomi_cn_877631863_acn010_s_2_curtain
+    title: Ö÷ÎÔ´°É´¹Ø±Õ
+    style:
+      top: 75.17%
+      left: 19.26%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: cover.xiaomi_cn_875660422_acn010_s_2_curtain
+    title: ¿ÍÌü´°Á±¹Ø±Õ
+    style:
+      top: 69.89%
+      left: 46.73%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: climate.yj1226_cn_2141905176_air
+    title: ¿ÍÌü¿Õµ÷1
+    style:
+      top: 40.83%
+      left: 71.65%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: climate.yj1226_cn_2141895509_air
+    title: µÜµÜ¿Õµ÷
+    style:
+      top: 39.24%
+      left: 28.55%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: cover.xiaomi_cn_876990609_acn010_s_2_curtain
+    title: Ö÷ÎÔ´°Á±¹Ø±Õ
+    style:
+      top: 80.17%
+      left: 18.66%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info
+  - type: state-icon
+    entity: climate.yj1226_cn_2141895501_air
+    title: Êé·¿¿Õµ÷
+    style:
+      top: 39.78%
+      left: 55.43%
+      border-radius: 50%
+      text-align: center
+      background-color: rgba(255, 255, 255, 0.3)
+      opacity: 100%
+      transform: translate(-50%, -50%) scale(100%)
+    tap_action:
+      action: toggle
+    double_tap_action:
+      action: none
+    hold_action:
+      action: more-info

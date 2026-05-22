@@ -396,15 +396,16 @@ const V2RefinedHA = () => {
         </div>
 
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0 }}>
-          <div style={{ position: "relative", width: "100%", maxWidth: "100%" }}>
+          <div style={{ position: "relative", width: "100%", height: "100%", maxHeight: "100%" }}>
             <div className="fp-stack">
-              <img className="fp-base" src={assetUrl(FLOORPLAN_BASE)} alt=""/>
-              {/* Light render overlays */}
-              {LIGHTS.filter(l => l.hasRender).map(l => (
-                <img key={l.id}
-                     className={`fp-on ${onLights.has(l.id) ? "active" : ""}`}
-                     src={assetUrl(`assets/floorplan/${l.id}.png`)} alt=""/>
-              ))}
+              <div className="fp-zoom-layer">
+                <img className="fp-base" src={assetUrl(FLOORPLAN_BASE)} alt=""/>
+                {/* Light render overlays */}
+                {LIGHTS.filter(l => l.hasRender).map(l => (
+                  <img key={l.id}
+                       className={`fp-on ${onLights.has(l.id) ? "active" : ""}`}
+                       src={assetUrl(`assets/floorplan/${l.id}.png`)} alt=""/>
+                ))}
 
               {/* Light dots */}
               {visibleLights.map(l => {
@@ -464,6 +465,8 @@ const V2RefinedHA = () => {
                   </div>
                 );
               })}
+
+              </div>
 
               {/* Legend */}
               <div className="fp-overlay-chip" style={{ left: 10, bottom: 10 }}>

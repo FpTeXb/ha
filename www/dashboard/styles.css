@@ -322,6 +322,31 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   color: rgba(255,255,255,0.55);
   transition: opacity 180ms ease, filter 180ms ease;
 }
+.ac-flow::before,
+.ac-flow::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.ac-flow::before {
+  left: 6px;
+  top: 4px;
+  width: 34px;
+  height: 14px;
+  border-radius: 999px;
+  filter: blur(2px);
+}
+.ac-flow::after {
+  left: 12px;
+  top: 14px;
+  width: 30px;
+  height: 24px;
+  border-radius: 50%;
+  filter: blur(8px);
+  transform-origin: center top;
+}
 .ac-flow.flip {
   transform: translate(-50%, -50%) rotate(180deg);
 }
@@ -350,11 +375,33 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
 .ac-flow.on .ac-vent {
   border-color: rgba(255,255,255,0.75);
 }
+.ac-flow.on::before,
+.ac-flow.on::after {
+  opacity: 1;
+}
 .ac-flow.on.cool .ac-vent {
-  box-shadow: 0 0 14px rgba(120,180,230,0.35);
+  background: linear-gradient(180deg, rgba(165,225,255,0.28), rgba(20,34,42,0.72));
+  box-shadow: 0 0 12px rgba(120,210,255,0.42), inset 0 0 8px rgba(120,210,255,0.28);
 }
 .ac-flow.on.heat .ac-vent {
-  box-shadow: 0 0 14px rgba(228,170,90,0.38);
+  background: linear-gradient(180deg, rgba(255,218,150,0.30), rgba(44,30,18,0.74));
+  box-shadow: 0 0 12px rgba(255,190,110,0.46), inset 0 0 8px rgba(255,190,110,0.30);
+}
+.ac-flow.on.cool::before {
+  background: linear-gradient(90deg, rgba(90,185,255,0), rgba(115,220,255,0.55), rgba(90,185,255,0));
+  animation: ac-vent-glow 1400ms ease-in-out infinite;
+}
+.ac-flow.on.cool::after {
+  background: radial-gradient(ellipse at top, rgba(110,215,255,0.32), rgba(110,215,255,0.10) 45%, rgba(110,215,255,0) 72%);
+  animation: ac-air-aura 1500ms ease-in-out infinite;
+}
+.ac-flow.on.heat::before {
+  background: linear-gradient(90deg, rgba(255,190,95,0), rgba(255,205,120,0.58), rgba(255,190,95,0));
+  animation: ac-vent-glow 1500ms ease-in-out infinite;
+}
+.ac-flow.on.heat::after {
+  background: radial-gradient(ellipse at top, rgba(255,190,105,0.34), rgba(255,190,105,0.11) 45%, rgba(255,190,105,0) 72%);
+  animation: ac-air-aura 1650ms ease-in-out infinite;
 }
 .ac-flow.on.cool .air {
   background: linear-gradient(180deg, rgba(120,180,230,0), rgba(120,210,255,0.95), rgba(120,180,230,0));
@@ -384,6 +431,15 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   0% { transform: translateX(0) translateY(-10px); opacity: 0; }
   45% { opacity: 0.9; }
   100% { transform: translateX(0) translateY(14px); opacity: 0; }
+}
+@keyframes ac-vent-glow {
+  0%, 100% { opacity: 0.45; transform: scaleX(0.86); }
+  50% { opacity: 1; transform: scaleX(1.08); }
+}
+@keyframes ac-air-aura {
+  0% { opacity: 0; transform: translateY(-5px) scale(0.76); }
+  45% { opacity: 0.95; }
+  100% { opacity: 0; transform: translateY(12px) scale(1.18); }
 }
 
 /* Room card in left rail */

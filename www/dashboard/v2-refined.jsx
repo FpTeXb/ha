@@ -56,6 +56,13 @@ const ROOM_GROUPS = [
   { id: "kitchen", name: "厨房", icon: "leaf", rooms: ["kitchen"] },
   { id: "study", name: "书房", icon: "settings", rooms: ["study"] },
 ];
+const WAKE_CURTAIN_IDS = [
+  "cover.xiaomi_cn_877631863_acn010_s_2_curtain",
+  "cover.xiaomi_cn_876990609_acn010_s_2_curtain",
+  "cover.xiaomi_cn_877633736_acn010_s_2_curtain",
+  "cover.xiaomi_cn_875659223_acn010_s_2_curtain",
+];
+const CURTAIN_FULL_TRAVEL_MS = 5000;
 
 const assetUrl = (path) => {
   const version = new URLSearchParams(location.search).get("v");
@@ -120,6 +127,7 @@ const V2RefinedHA = () => {
   const [activeScene, setActiveScene] = useState(null);
   const [showAll, setShowAll] = useState(true);
   const curtainClickTimersRef = React.useRef({});
+  const curtainSceneTimersRef = React.useRef([]);
   const selectedRooms = useMemo(() => {
     if (!selectedRoom) return null;
     return new Set(ROOM_GROUPS.find(r => r.id === selectedRoom)?.rooms || [selectedRoom]);
@@ -185,10 +193,24 @@ const V2RefinedHA = () => {
       hc?.callService("scene", "turn_on", { entity_id: "scene.home_return" });
     } else if (sceneId === "scene.away") {
       hc?.callService("scene", "turn_on", { entity_id: "scene.home_away" });
-    } else if (sceneId === "scene.cool") {
-      bulkAc(22, "cool");
+    } else if (sceneId === "scene.wake") {
+      curtainSceneTimersRef.current.forEach(t => clearTimeout(t));
+      curtainSceneTimersRef.current = [];
+      const target = 70;
+      WAKE_CURTAIN_IDS.forEach(id => {
+        const current = curtainOpen[id] || 0;
+        const delta = target - current;
+        if (Math.abs(delta) < 2) return;
+        const service = delta > 0 ? "open_cover" : "close_cover";
+        const duration = Math.max(400, Math.round(Math.abs(delta) * CURTAIN_FULL_TRAVEL_MS / 100));
+        hc?.callService("cover", service, { entity_id: id });
+        const timer = setTimeout(() => {
+          hc?.callService("cover", "stop_cover", { entity_id: id });
+        }, duration);
+        curtainSceneTimersRef.current.push(timer);
+      });
     }
-  }, [bulkAc, hc]);
+  }, [curtainOpen, hc]);
 
   const toggleLight = useCallback((id) => {
     hc?.callService("light", "toggle", { entity_id: id });
@@ -469,7 +491,7 @@ const V2RefinedHA = () => {
               </div>
 
               {/* Legend */}
-              <div className="fp-overlay-chip" style={{ left: 10, bottom: 10 }}>
+              <div className="fp-overlay-chip" style={{ right: 10, bottom: 10 }}>
                 <span className="dot amber" style={{ width: 6, height: 6 }}/> 灯
                 <span className="dot cyan" style={{ width: 6, height: 6, marginLeft: 8 }}/> 空调
                 <span className="dot mint" style={{ width: 6, height: 6, marginLeft: 8 }}/> 窗帘
@@ -553,7 +575,9 @@ const V2RefinedHA = () => {
           <div style={{ flex: 1, display: "flex", gap: 6 }}>
             {SCENES.map(s => (
               <div key={s.id} className={`scene-tile ${activeScene === s.id ? "on" : ""}`}
-                   onClick={() => applyScene(s.id)}>
+                   title={s.id === "scene.wake" ? "双击启用" : undefined}
+                   onClick={() => s.id !== "scene.wake" && applyScene(s.id)}
+                   onDoubleClick={() => s.id === "scene.wake" && applyScene(s.id)}>
                 <Icon name={s.icon} size={18}/>
                 <span style={{ fontSize: 11 }}>{s.name}</span>
               </div>

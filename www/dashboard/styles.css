@@ -189,6 +189,55 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
 .fp-stack .fp-base { filter: brightness(0.9) saturate(0.85) contrast(1.02); }
 .fp-stack .fp-on   { mix-blend-mode: lighten; opacity: 0; transition: opacity 350ms ease; }
 .fp-stack .fp-on.active { opacity: 1; }
+.fp-stack .fp-curtain-render { opacity: 0; transition: opacity 350ms ease; }
+.fp-mode-toggle {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 58px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.24);
+  background: rgba(12,14,20,0.46);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 7px;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  z-index: 6;
+}
+.fp-mode-toggle .mode-knob {
+  position: absolute;
+  top: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.14);
+  box-shadow: inset 0 0 8px rgba(255,255,255,0.10);
+  transition: left 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+.fp-mode-toggle.day .mode-knob {
+  left: 4px;
+  background: rgba(255,196,100,0.38);
+  box-shadow: 0 0 12px rgba(255,196,100,0.28), inset 0 0 8px rgba(255,255,255,0.14);
+}
+.fp-mode-toggle.night .mode-knob {
+  left: 32px;
+  background: rgba(125,178,255,0.34);
+  box-shadow: 0 0 12px rgba(125,178,255,0.25), inset 0 0 8px rgba(255,255,255,0.12);
+}
+.fp-mode-toggle .mode-icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fp-mode-toggle.day .sun-icon { color: var(--amber); }
+.fp-mode-toggle.night .moon-icon { color: var(--cyan); }
 
 /* Clickable light fixtures */
 .lite-dot {

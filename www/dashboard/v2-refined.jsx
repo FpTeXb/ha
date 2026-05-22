@@ -63,6 +63,14 @@ const WAKE_CURTAIN_IDS = [
   "cover.xiaomi_cn_875659223_acn010_s_2_curtain",
 ];
 const CURTAIN_FULL_TRAVEL_MS = 5000;
+const DAY_FLOORPLAN_BASE = "../floorplan-day/base.png";
+const DAY_CURTAIN_RENDERS = [
+  { file: "../floorplan-day-overlay/keting.png", ids: ["cover.xiaomi_cn_875660422_acn010_s_2_curtain"] },
+  { file: "../floorplan-day-overlay/shufang.png", ids: ["cover.xiaomi_cn_877631852_acn010_s_2_curtain"] },
+  { file: "../floorplan-day-overlay/didi.png", ids: ["cover.xiaomi_cn_877633736_acn010_s_2_curtain"] },
+  { file: "../floorplan-day-overlay/zhuwo.png", ids: ["cover.xiaomi_cn_877631863_acn010_s_2_curtain", "cover.xiaomi_cn_876990609_acn010_s_2_curtain"] },
+  { file: "../floorplan-day-overlay/jiejie.png", ids: ["cover.xiaomi_cn_875659223_acn010_s_2_curtain"] },
+];
 
 const assetUrl = (path) => {
   const version = new URLSearchParams(location.search).get("v");
@@ -126,6 +134,7 @@ const V2RefinedHA = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [activeScene, setActiveScene] = useState(null);
   const [showAll, setShowAll] = useState(true);
+  const [floorplanModeOverride, setFloorplanModeOverride] = useState(null);
   const curtainClickTimersRef = React.useRef({});
   const curtainSceneTimersRef = React.useRef([]);
   const selectedRooms = useMemo(() => {
@@ -305,6 +314,14 @@ const V2RefinedHA = () => {
     w += acOn.size * 720;
     return w;
   }, [onLights, acOn]);
+  const previewHour = Number(new URLSearchParams(location.search).get("hour"));
+  const floorplanHour = Number.isFinite(previewHour) ? previewHour : now.getHours();
+  const autoDayFloorplan = floorplanHour >= 6 && floorplanHour < 17;
+  const isDayFloorplan = floorplanModeOverride ? floorplanModeOverride === "day" : autoDayFloorplan;
+  const floorplanBase = isDayFloorplan ? DAY_FLOORPLAN_BASE : FLOORPLAN_BASE;
+  const toggleFloorplanMode = () => {
+    setFloorplanModeOverride(isDayFloorplan ? "night" : "day");
+  };
 
   return (
     <div className="tablet">
@@ -421,9 +438,18 @@ const V2RefinedHA = () => {
           <div style={{ position: "relative", width: "100%", height: "100%", maxHeight: "100%" }}>
             <div className="fp-stack">
               <div className="fp-zoom-layer">
-                <img className="fp-base" src={assetUrl(FLOORPLAN_BASE)} alt=""/>
+                <img className="fp-base" src={assetUrl(floorplanBase)} alt=""/>
+                {isDayFloorplan && DAY_CURTAIN_RENDERS.map(item => {
+                  const opacity = Math.max(...item.ids.map(id => curtainOpen[id] || 0)) / 100;
+                  return (
+                    <img key={item.file}
+                         className="fp-curtain-render"
+                         src={assetUrl(item.file)} alt=""
+                         style={{ opacity }}/>
+                  );
+                })}
                 {/* Light render overlays */}
-                {LIGHTS.filter(l => l.hasRender).map(l => (
+                {!isDayFloorplan && LIGHTS.filter(l => l.hasRender).map(l => (
                   <img key={l.id}
                        className={`fp-on ${onLights.has(l.id) ? "active" : ""}`}
                        src={assetUrl(`assets/floorplan/${l.id}.png`)} alt=""/>
@@ -489,6 +515,15 @@ const V2RefinedHA = () => {
               })}
 
               </div>
+
+              <button className={`fp-mode-toggle ${isDayFloorplan ? "day" : "night"}`}
+                      type="button"
+                      title={isDayFloorplan ? "切换夜间图" : "切换白天图"}
+                      onClick={toggleFloorplanMode}>
+                <span className="mode-knob"/>
+                <span className="mode-icon sun-icon"><Icon name="sun" size={12}/></span>
+                <span className="mode-icon moon-icon"><Icon name="moon" size={12}/></span>
+              </button>
 
               {/* Legend */}
               <div className="fp-overlay-chip" style={{ right: 10, bottom: 10 }}>

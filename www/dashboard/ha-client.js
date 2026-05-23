@@ -12,6 +12,7 @@
       this.msgId = 1;
       this.states = {};
       this.listeners = new Set();
+      this.pending = new Map();
       this.connected = false;
       this.error = null;
     }
@@ -43,8 +44,16 @@
               try { this.forecastCallbacks.get(msg.id)(msg.event.forecast); } catch (e) { console.error(e); }
             }
             this._handleEvent(msg.event);
-          } else if (msg.type === "result" && msg.success && msg.result && Array.isArray(msg.result.forecast) && this.forecastCallbacks && this.forecastCallbacks.has(msg.id)) {
-            try { this.forecastCallbacks.get(msg.id)(msg.result.forecast); } catch (e) { console.error(e); }
+          } else if (msg.type === "result") {
+            if (this.pending.has(msg.id)) {
+              const { resolve, reject } = this.pending.get(msg.id);
+              this.pending.delete(msg.id);
+              if (msg.success) resolve(msg.result);
+              else reject(new Error(msg.error?.message || "服务调用失败"));
+            }
+            if (msg.success && msg.result && Array.isArray(msg.result.forecast) && this.forecastCallbacks && this.forecastCallbacks.has(msg.id)) {
+              try { this.forecastCallbacks.get(msg.id)(msg.result.forecast); } catch (e) { console.error(e); }
+            }
           }
         };
       });
@@ -77,14 +86,20 @@
       }
     }
     callService(domain, service, data) {
-      if (!this.connected) return;
-      this.ws.send(JSON.stringify({
-        id: this.msgId++,
-        type: "call_service",
-        domain,
-        service,
-        service_data: data,
-      }));
+      if (!this.connected) return Promise.reject(new Error("Home Assistant 未连接"));
+      const id = this.msgId++;
+      const payload = { id, type: "call_service", domain, service };
+      const { entity_id, device_id, area_id, ...serviceData } = data || {};
+      const target = {};
+      if (entity_id) target.entity_id = entity_id;
+      if (device_id) target.device_id = device_id;
+      if (area_id) target.area_id = area_id;
+      if (Object.keys(target).length) payload.target = target;
+      if (Object.keys(serviceData).length) payload.service_data = serviceData;
+      return new Promise((resolve, reject) => {
+        this.pending.set(id, { resolve, reject });
+        this.ws.send(JSON.stringify(payload));
+      });
     }
     subscribeForecast(entityId, callback, forecastType = "daily") {
       if (!this.connected) return () => {};

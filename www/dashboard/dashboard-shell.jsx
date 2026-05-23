@@ -5,7 +5,7 @@ const { useState, useEffect, useCallback, useMemo } = React;
 
 const SetupOverlay = ({ onSave, error }) => {
   const saved = window.HADashboard.loadConn() || {};
-  const [url, setUrl] = useState(saved.url || (location.protocol + "//" + location.hostname + ":8123"));
+  const [url, setUrl] = useState(saved.url || "http://192.168.88.68:8080");
   const [token, setToken] = useState(saved.token || "");
   return (
     <div style={{
@@ -58,6 +58,7 @@ const ConnectingOverlay = () => (
 );
 
 const isPreviewMode = () => new URLSearchParams(location.search).has("preview");
+const isSetupMode = () => new URLSearchParams(location.search).has("setup");
 
 const buildPreviewStates = () => {
   const states = {};
@@ -83,6 +84,34 @@ const buildPreviewStates = () => {
       attributes: { current_position: c.open },
     };
   }
+  states["vacuum.g20"] = {
+    state: "docked",
+    attributes: {
+      battery_level: 100,
+      fan_speed: "最大",
+      fan_speed_list: ["安静", "标准", "强力", "最大"],
+    },
+  };
+  states["sensor.g20_status"] = {
+    state: "充电中",
+    attributes: { friendly_name: "G20 status" },
+  };
+  states["sensor.g20_filter_time_left"] = {
+    state: "130",
+    attributes: { friendly_name: "G20 filter time left", unit_of_measurement: "h" },
+  };
+  states["sensor.g20_main_brush_time_left"] = {
+    state: "279",
+    attributes: { friendly_name: "G20 main brush time left", unit_of_measurement: "h" },
+  };
+  states["sensor.g20_side_brush_time_left"] = {
+    state: "120",
+    attributes: { friendly_name: "G20 side brush time left", unit_of_measurement: "h" },
+  };
+  states["sensor.g20_sensor_time_left"] = {
+    state: "8",
+    attributes: { friendly_name: "G20 sensor time left", unit_of_measurement: "h" },
+  };
   states["weather.home"] = {
     state: "partlycloudy",
     attributes: { temperature: 26, humidity: 61 },
@@ -121,6 +150,23 @@ const enablePreviewMode = () => {
           const cur = window.__haStates[entityId]?.state;
           const state = service === "toggle" ? (cur === "on" ? "off" : "on") : service === "turn_on" ? "on" : "off";
           updateEntity(entityId, { state });
+        } else if (domain === "button" && service === "press") {
+          updateEntity(entityId, {
+            state: new Date().toISOString(),
+            attributes: { friendly_name: entityId },
+          });
+        } else if (domain === "vacuum") {
+          if (service === "start") {
+            updateEntity(entityId, { state: "cleaning" });
+            updateEntity("sensor.g20_status", { state: "正在清扫" });
+          } else if (service === "stop") {
+            updateEntity(entityId, { state: "idle" });
+            updateEntity("sensor.g20_status", { state: "待机" });
+          } else if (service === "return_to_base") {
+            updateEntity(entityId, { state: "returning" });
+            updateEntity("sensor.g20_status", { state: "返回充电" });
+          }
+          else if (service === "locate") updateEntity(entityId, { attributes: { locating: true } });
         } else if (domain === "climate") {
           if (service === "set_hvac_mode") {
             updateEntity(entityId, { state: data.hvac_mode });
@@ -203,6 +249,10 @@ const Dashboard = () => {
     if (isPreviewMode()) {
       enablePreviewMode();
       return "connected";
+    }
+    if (isSetupMode()) {
+      window.HADashboard.clearConn();
+      return "setup";
     }
     const saved = window.HADashboard.loadConn();
     return saved && saved.token ? "connecting" : "setup";

@@ -72,6 +72,36 @@ const DAY_CURTAIN_RENDERS = [
   { file: "../floorplan-day-overlay/jiejie.png", ids: ["cover.xiaomi_cn_875659223_acn010_s_2_curtain"] },
 ];
 const CLIMATE_LAST_MODE_KEY = "ha-dashboard-last-climate-modes";
+const ROBOROCK_VACUUM_ID = "vacuum.g20";
+const ROBOROCK_STATUS_SENSOR = "sensor.g20_status";
+const ROBOROCK_AFTER_MEAL_BUTTON = "button.g20_fan_hou_qing_ji";
+
+const ROBOT_STATE_LABELS = {
+  cleaning: "清扫中",
+  docked: "已停靠",
+  idle: "待机",
+  paused: "已暂停",
+  returning: "回充中",
+  unavailable: "离线",
+  unknown: "未知",
+  "充电中": "充电中",
+  "返回充电": "返回充电",
+  "清洗拖布": "清洗拖布",
+  "正在清扫": "正在清扫",
+};
+
+const ROBOT_CONSUMABLES = [
+  { label: "主刷", id: "sensor.g20_main_brush_time_left", baselineHours: 279, baselinePercent: 93 },
+  { label: "边刷", id: "sensor.g20_side_brush_time_left", baselineHours: 120, baselinePercent: 61 },
+  { label: "滤网", id: "sensor.g20_filter_time_left", baselineHours: 130, baselinePercent: 87 },
+  { label: "传感器", id: "sensor.g20_sensor_time_left", baselineHours: 8, baselinePercent: 25 },
+];
+
+const consumablePercentColor = (percent) => {
+  if (percent <= 25) return "var(--rose)";
+  if (percent <= 50) return "var(--amber)";
+  return "var(--mint)";
+};
 
 const assetUrl = (path) => {
   const version = new URLSearchParams(location.search).get("v");
@@ -146,6 +176,7 @@ const V2RefinedHA = () => {
   const [floorplanModeOverride, setFloorplanModeOverride] = useState(null);
   const [selectedClimateId, setSelectedClimateId] = useState(null);
   const [localClimateTemps, setLocalClimateTemps] = useState({});
+  const [robotButtonStatus, setRobotButtonStatus] = useState(null);
   const [lastClimateModes, setLastClimateModes] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(CLIMATE_LAST_MODE_KEY) || "{}");
@@ -188,6 +219,26 @@ const V2RefinedHA = () => {
   const wxIcon = weather ? (WX_ICON[weather.state] || "cloud") : "moon";
   const wxLabel = weather ? (WX_LABEL[weather.state] || weather.state) : "—";
   const wxTemp = weather?.attributes?.temperature;
+  const robotState = haStates[ROBOROCK_VACUUM_ID]?.state || "unknown";
+  const robotStatusState = haStates[ROBOROCK_STATUS_SENSOR]?.state;
+  const robotAttrs = haStates[ROBOROCK_VACUUM_ID]?.attributes || {};
+  const robotBattery = typeof robotAttrs.battery_level === "number" ? robotAttrs.battery_level : null;
+  const robotFanSpeed = robotAttrs.fan_speed || robotAttrs.fan_speed_list?.[0] || "默认";
+  const robotStatusLabel = ROBOT_STATE_LABELS[robotStatusState] || ROBOT_STATE_LABELS[robotState] || robotStatusState || robotState;
+  const robotDocked = robotState === "docked" || robotStatusState === "充电中";
+  const robotConsumables = ROBOT_CONSUMABLES.map(item => {
+    const raw = haStates[item.id]?.state;
+    const remaining = Number.parseFloat(raw);
+    const totalHours = item.baselineHours / (item.baselinePercent / 100);
+    const percent = Number.isFinite(remaining)
+      ? Math.max(0, Math.min(100, Math.round((remaining / totalHours) * 100)))
+      : item.baselinePercent;
+    return {
+      label: item.label,
+      v: percent,
+      c: consumablePercentColor(percent),
+    };
+  });
 
   // Weather forecast — subscribe when weather entity known
   const [forecast, setForecast] = useState([]);
@@ -314,6 +365,40 @@ const V2RefinedHA = () => {
   };
   const allOff = () => {
     for (const l of LIGHTS) if (isOn(l.id)) hc?.callService("light", "turn_off", { entity_id: l.id });
+  };
+  const runRobotButton = (entityId) => {
+    if (!hc?.connected) {
+      setRobotButtonStatus("未连接");
+      setTimeout(() => setRobotButtonStatus(null), 1400);
+      return;
+    }
+    setRobotButtonStatus("发送中");
+    Promise.resolve(hc.callService("button", "press", { entity_id: entityId }))
+      .then(() => {
+        setRobotButtonStatus("已发送");
+        setTimeout(() => setRobotButtonStatus(null), 1400);
+      })
+      .catch(() => {
+        setRobotButtonStatus("失败");
+        setTimeout(() => setRobotButtonStatus(null), 1800);
+      });
+  };
+  const runRobotService = (service) => {
+    if (!hc?.connected) {
+      setRobotButtonStatus("未连接");
+      setTimeout(() => setRobotButtonStatus(null), 1400);
+      return;
+    }
+    setRobotButtonStatus("发送中");
+    Promise.resolve(hc.callService("vacuum", service, { entity_id: ROBOROCK_VACUUM_ID }))
+      .then(() => {
+        setRobotButtonStatus("已发送");
+        setTimeout(() => setRobotButtonStatus(null), 1200);
+      })
+      .catch(() => {
+        setRobotButtonStatus("失败");
+        setTimeout(() => setRobotButtonStatus(null), 1800);
+      });
   };
   const setCurtainOpen = (updater) => {
     const newMap = typeof updater === "function" ? updater(curtainOpen) : updater;
@@ -796,32 +881,27 @@ const V2RefinedHA = () => {
         <div className="glass" style={{ flex: "0 0 240px", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Icon name="vacuum" size={14} style={{ color: "var(--fg-2)" }}/>
-            <span className="eyebrow">Roborock</span>
+            <span className="eyebrow">G20</span>
             <span className="chip" style={{ marginLeft: "auto", padding: "2px 6px", fontSize: 9 }}>
-              <span className="dot mint" style={{ width: 5, height: 5 }}/> 充电中 · 87%
+              <span className={`dot ${robotDocked ? "mint" : "cyan"}`} style={{ width: 5, height: 5 }}/> {robotStatusLabel}{robotBattery !== null ? ` · ${robotBattery}%` : ""}
             </span>
           </div>
           <div style={{ display: "flex", gap: 5 }}>
-            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
+            <div className="tap glass-strong" onClick={() => runRobotService("start")} style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
               <Icon name="play" size={12} style={{ color: "var(--cyan)" }}/>
               全屋
             </div>
-            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
+            <div className="tap glass-strong" data-testid="roborock-after-meal" onClick={() => runRobotButton(ROBOROCK_AFTER_MEAL_BUTTON)} style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
               <Icon name="leaf" size={12} style={{ color: "var(--mint)" }}/>
-              饭后
+              {robotButtonStatus || "饭后"}
             </div>
-            <div className="tap glass-strong" style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
+            <div className="tap glass-strong" onClick={() => runRobotService("return_to_base")} style={{ flex: 1, padding: "6px 4px", borderRadius: 9, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, fontSize: 10 }}>
               <Icon name="home" size={12} style={{ color: "var(--amber)" }}/>
               回充
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            {[
-              { label: "主刷", v: 78, c: "var(--mint)" },
-              { label: "边刷", v: 62, c: "var(--mint)" },
-              { label: "滤网", v: 34, c: "var(--amber)" },
-              { label: "抹布", v: 12, c: "var(--rose)" },
-            ].map((s, i) => (
+            {robotConsumables.map((s, i) => (
               <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
                 <div style={{ fontSize: 10, color: "var(--fg-2)" }}>{s.label}</div>
                 <div style={{ width: "100%", height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>

@@ -44,6 +44,9 @@ const Icon = ({ name, size = 22, ...rest }) => {
     case "pause": return (
       <svg {...common}><rect x="6" y="4" width="4" height="16" fill={stroke}/><rect x="14" y="4" width="4" height="16" fill={stroke}/></svg>
     );
+    case "stop": return (
+      <svg {...common}><rect x="6" y="6" width="12" height="12" rx="1.5" fill={stroke}/></svg>
+    );
     case "skip-next": return (
       <svg {...common}><path d="M5 4l10 8-10 8V4z" fill={stroke}/><path d="M18 4v16" strokeWidth="2"/></svg>
     );
@@ -52,6 +55,9 @@ const Icon = ({ name, size = 22, ...rest }) => {
     );
     case "vacuum": return (
       <svg {...common}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    );
+    case "pin": return (
+      <svg {...common}><path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></svg>
     );
     case "bolt": return (
       <svg {...common}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill={stroke}/></svg>

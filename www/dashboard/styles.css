@@ -273,6 +273,7 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
 }
 .lite-dot.ceiling-xl { width: 28px; height: 28px; }
 .lite-dot.ceiling-md { width: 22px; height: 22px; }
+.lite-dot.compact-room-light { width: 18px; height: 18px; }
 .lite-dot.ceiling-sm { width: 18px; height: 18px; }
 .lite-dot.linear {
   width: 68px;
@@ -436,6 +437,10 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   background: linear-gradient(180deg, rgba(255,218,150,0.30), rgba(44,30,18,0.74));
   box-shadow: 0 0 12px rgba(255,190,110,0.46), inset 0 0 8px rgba(255,190,110,0.30);
 }
+.ac-flow.on.fan .ac-vent {
+  background: linear-gradient(180deg, rgba(255,255,255,0.26), rgba(30,32,38,0.74));
+  box-shadow: 0 0 12px rgba(255,255,255,0.24), inset 0 0 8px rgba(255,255,255,0.16);
+}
 .ac-flow.on.cool::before {
   background: linear-gradient(90deg, rgba(90,185,255,0), rgba(115,220,255,0.55), rgba(90,185,255,0));
   animation: ac-vent-glow 1400ms ease-in-out infinite;
@@ -452,6 +457,14 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   background: radial-gradient(ellipse at top, rgba(255,190,105,0.34), rgba(255,190,105,0.11) 45%, rgba(255,190,105,0) 72%);
   animation: ac-air-aura 1650ms ease-in-out infinite;
 }
+.ac-flow.on.fan::before {
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.50), rgba(255,255,255,0));
+  animation: ac-vent-glow 1500ms ease-in-out infinite;
+}
+.ac-flow.on.fan::after {
+  background: radial-gradient(ellipse at top, rgba(255,255,255,0.25), rgba(255,255,255,0.09) 45%, rgba(255,255,255,0) 72%);
+  animation: ac-air-aura 1600ms ease-in-out infinite;
+}
 .ac-flow.on.cool .air {
   background: linear-gradient(180deg, rgba(120,180,230,0), rgba(120,210,255,0.95), rgba(120,180,230,0));
   box-shadow: 0 0 8px rgba(120,210,255,0.45);
@@ -461,6 +474,11 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   background: linear-gradient(180deg, rgba(228,170,90,0), rgba(255,200,120,0.95), rgba(228,170,90,0));
   box-shadow: 0 0 8px rgba(255,190,110,0.48);
   animation: ac-heat-flow 1300ms ease-in-out infinite;
+}
+.ac-flow.on.fan .air {
+  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.88), rgba(255,255,255,0));
+  box-shadow: 0 0 8px rgba(255,255,255,0.34);
+  animation: ac-cool-flow 1200ms ease-in-out infinite;
 }
 .ac-flow.on .air-2 { animation-delay: 160ms; }
 .ac-flow.on .air-3 { animation-delay: 320ms; }
@@ -513,8 +531,108 @@ html, body { margin: 0; padding: 0; font-family: var(--font-ui); color: var(--fg
   padding: 8px 10px; border-radius: 10px;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--stroke);
+  transition: background 160ms ease, border-color 160ms ease;
 }
+.ac-row:hover { background: rgba(255,255,255,0.055); }
 .ac-row.on { background: rgba(120,180,230,0.10); border-color: rgba(120,180,230,0.3); }
+.ac-control-panel {
+  padding: 10px;
+  border-radius: 11px;
+  background: rgba(8,10,16,0.46);
+  border: 1px solid var(--stroke);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.ac-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.32);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.ac-modal {
+  width: 286px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(18,21,30,0.92);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.46), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.ac-modal.cool {
+  border-color: rgba(120,210,255,0.28);
+}
+.ac-modal.heat {
+  border-color: rgba(255,190,110,0.30);
+}
+.ac-modal.fan {
+  border-color: rgba(255,255,255,0.22);
+}
+.ac-modal-temp {
+  font-size: 42px;
+  line-height: 1;
+}
+.ac-modal.cool .ac-modal-temp { color: var(--cyan); }
+.ac-modal.heat .ac-modal-temp { color: var(--amber); }
+.ac-modal.fan .ac-modal-temp,
+.ac-modal.off .ac-modal-temp { color: var(--fg); }
+.ac-modal-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.05);
+  color: var(--fg-2);
+  cursor: pointer;
+}
+.ac-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.ac-mode-btn {
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.04);
+  color: var(--fg-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.ac-mode-btn:disabled {
+  opacity: 0.34;
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+}
+.ac-mode-btn.cool.on {
+  color: var(--cyan);
+  border-color: rgba(120,210,255,0.42);
+  background: rgba(120,180,230,0.12);
+}
+.ac-mode-btn.heat.on {
+  color: var(--amber);
+  border-color: rgba(255,190,110,0.42);
+  background: rgba(228,170,90,0.12);
+}
+.ac-mode-btn.fan.on {
+  color: var(--fg);
+  border-color: rgba(255,255,255,0.38);
+  background: rgba(255,255,255,0.10);
+}
+.ac-temp-slider {
+  width: 100%;
+  accent-color: var(--cyan);
+}
+.ac-modal.cool .ac-temp-slider { accent-color: var(--cyan); }
+.ac-modal.heat .ac-temp-slider { accent-color: var(--amber); }
+.ac-modal.fan .ac-temp-slider,
+.ac-modal.off .ac-temp-slider { accent-color: rgba(255,255,255,0.72); }
 
 /* Scene tile */
 .scene-tile {

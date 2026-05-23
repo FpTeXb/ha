@@ -71,6 +71,7 @@ const DAY_CURTAIN_RENDERS = [
   { file: "../floorplan-day-overlay/zhuwo.png", ids: ["cover.xiaomi_cn_877631863_acn010_s_2_curtain", "cover.xiaomi_cn_876990609_acn010_s_2_curtain"] },
   { file: "../floorplan-day-overlay/jiejie.png", ids: ["cover.xiaomi_cn_875659223_acn010_s_2_curtain"] },
 ];
+const CLIMATE_LAST_MODE_KEY = "ha-dashboard-last-climate-modes";
 
 const assetUrl = (path) => {
   const version = new URLSearchParams(location.search).get("v");
@@ -80,6 +81,7 @@ const assetUrl = (path) => {
 const lightFixtureClass = (light) => {
   if (light.name === "客厅") return "ceiling-xl";
   if (light.name === "餐厅") return "linear dining-linear";
+  if (light.id === "light.yeelink_cn_2006173280_ceil45_s_2_light" || light.id === "light.yeelink_cn_962306557_ceil45_s_2_light") return "ceiling-md compact-room-light";
   if (["主卧", "弟弟房", "姐姐房", "书房"].includes(light.name)) return "ceiling-md";
   if (["主卫", "客卫"].includes(light.name)) return "ceiling-sm";
   if (["走道", "入户", "窗台射灯", "窗台筒灯", "主卧射灯", "洗手台"].includes(light.name)) return "spot";
@@ -130,11 +132,27 @@ const V2RefinedHA = () => {
     }
     return m;
   }, [haStates]);
+  const hasCooling = useMemo(() => CLIMATES.some(c => haStates[c.id]?.state === "cool"), [haStates]);
+  const hasHeating = useMemo(() => CLIMATES.some(c => haStates[c.id]?.state === "heat"), [haStates]);
+  const canUseClimateMode = useCallback((mode) => {
+    if (mode === "cool" && hasHeating) return false;
+    if (mode === "heat" && hasCooling) return false;
+    return true;
+  }, [hasCooling, hasHeating]);
 
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [activeScene, setActiveScene] = useState(null);
   const [showAll, setShowAll] = useState(true);
   const [floorplanModeOverride, setFloorplanModeOverride] = useState(null);
+  const [selectedClimateId, setSelectedClimateId] = useState(null);
+  const [localClimateTemps, setLocalClimateTemps] = useState({});
+  const [lastClimateModes, setLastClimateModes] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(CLIMATE_LAST_MODE_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  });
   const curtainClickTimersRef = React.useRef({});
   const curtainSceneTimersRef = React.useRef([]);
   const selectedRooms = useMemo(() => {
@@ -173,6 +191,7 @@ const V2RefinedHA = () => {
 
   // Weather forecast — subscribe when weather entity known
   const [forecast, setForecast] = useState([]);
+  const [shanghaiAir, setShanghaiAir] = useState(null);
   useEffect(() => {
     if (!weatherEntity || !hc) return;
     const unsub = hc.subscribeForecast(weatherEntity, (f) => {
@@ -180,8 +199,44 @@ const V2RefinedHA = () => {
     }, "daily");
     return unsub;
   }, [weatherEntity, hc]);
+  useEffect(() => {
+    let alive = true;
+    const loadAir = () => {
+      fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=31.2304&longitude=121.4737&current=european_aqi,pm2_5")
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!alive || !data?.current) return;
+          setShanghaiAir({
+            aqi: Math.round(data.current.european_aqi),
+            pm25: Math.round(data.current.pm2_5),
+          });
+        })
+        .catch(() => {});
+    };
+    loadAir();
+    const t = setInterval(loadAir, 30 * 60 * 1000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+  useEffect(() => {
+    setLastClimateModes(prev => {
+      let changed = false;
+      const next = { ...prev };
+      for (const c of CLIMATES) {
+        const mode = haStates[c.id]?.state;
+        if (mode === "cool" || mode === "heat" || mode === "fan_only") {
+          if (next[c.id] !== mode) {
+            next[c.id] = mode;
+            changed = true;
+          }
+        }
+      }
+      if (changed) localStorage.setItem(CLIMATE_LAST_MODE_KEY, JSON.stringify(next));
+      return changed ? next : prev;
+    });
+  }, [haStates]);
   const bulkAcStaggerRef = React.useRef(null);
   const bulkAc = useCallback((target, mode = "cool") => {
+    if (!canUseClimateMode(mode)) return;
     if (bulkAcStaggerRef.current) {
       bulkAcStaggerRef.current.forEach(t => clearTimeout(t));
     }
@@ -194,7 +249,7 @@ const V2RefinedHA = () => {
       timers.push(t);
     });
     bulkAcStaggerRef.current = timers;
-  }, [hc]);
+  }, [canUseClimateMode, hc]);
 
   const applyScene = useCallback((sceneId) => {
     setActiveScene(sceneId);
@@ -226,10 +281,36 @@ const V2RefinedHA = () => {
   }, [hc]);
   const toggleAc = (id) => {
     if (climateActive(id)) {
+      const mode = haStates[id]?.state;
+      if (mode === "cool" || mode === "heat" || mode === "fan_only") {
+        setLastClimateModes(prev => {
+          const next = { ...prev, [id]: mode };
+          localStorage.setItem(CLIMATE_LAST_MODE_KEY, JSON.stringify(next));
+          return next;
+        });
+      }
       hc?.callService("climate", "set_hvac_mode", { entity_id: id, hvac_mode: "off" });
     } else {
-      hc?.callService("climate", "set_hvac_mode", { entity_id: id, hvac_mode: "cool" });
+      const rememberedMode = hasHeating ? "heat" : hasCooling ? "cool" : lastClimateModes[id] || "cool";
+      const mode = canUseClimateMode(rememberedMode) ? rememberedMode : "fan_only";
+      hc?.callService("climate", "set_hvac_mode", { entity_id: id, hvac_mode: mode });
     }
+  };
+  const setClimateMode = (id, mode) => {
+    if (!canUseClimateMode(mode)) return;
+    if (mode === "cool" || mode === "heat" || mode === "fan_only") {
+      setLastClimateModes(prev => {
+        const next = { ...prev, [id]: mode };
+        localStorage.setItem(CLIMATE_LAST_MODE_KEY, JSON.stringify(next));
+        return next;
+      });
+    }
+    hc?.callService("climate", "set_hvac_mode", { entity_id: id, hvac_mode: mode });
+  };
+  const setClimateTemp = (id, temperature) => {
+    const temp = Number(temperature);
+    setLocalClimateTemps(prev => ({ ...prev, [id]: temp }));
+    hc?.callService("climate", "set_temperature", { entity_id: id, temperature: temp });
   };
   const allOff = () => {
     for (const l of LIGHTS) if (isOn(l.id)) hc?.callService("light", "turn_off", { entity_id: l.id });
@@ -418,19 +499,29 @@ const V2RefinedHA = () => {
             {selectedRoom ? ROOMS.find(r => r.id === selectedRoom)?.name : "我的家 · 户型"}
           </span>
           <div style={{ display: "flex", gap: 6 }}>
-            <span className="chip"><Icon name="thermo" size={11}/> 室内 22.4° · 湿 48%</span>
             {(() => {
-              const pm = 12;
-              const col = pm < 50 ? "var(--mint)" : pm < 100 ? "var(--amber)" : "var(--rose)";
+              const indoorPm = 12;
+              const indoorPmColor = indoorPm < 50 ? "var(--mint)" : indoorPm < 100 ? "var(--amber)" : "var(--rose)";
               return (
-                <span className="chip" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <Icon name="wave" size={11} style={{ color: col }}/>
-                  <span style={{ fontSize: 9, color: "var(--fg-3)", letterSpacing: "0.04em" }}>PM2.5</span>
-                  <span className="num" style={{ fontSize: 15, color: col, fontWeight: 500, lineHeight: 1 }}>{pm}</span>
+                <span className="chip">
+                  <Icon name="thermo" size={11}/> 室内 22.4° · 湿 48% · PM2.5 <span className="num" style={{ color: indoorPmColor }}>{indoorPm}</span>
                 </span>
               );
             })()}
-            <span className="chip"><Icon name="bolt" size={11} style={{ color: "var(--mint)" }}/> <span className="num">{livePower}</span> W</span>
+            {(() => {
+              const aqi = shanghaiAir?.aqi;
+              const outdoorPm = shanghaiAir?.pm25;
+              const col = !aqi ? "var(--fg-3)" : aqi < 50 ? "var(--mint)" : aqi < 100 ? "var(--amber)" : "var(--rose)";
+              const pmCol = outdoorPm == null ? "var(--fg-3)" : outdoorPm < 50 ? "var(--mint)" : outdoorPm < 100 ? "var(--amber)" : "var(--rose)";
+              return (
+                <span className="chip" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Icon name="wave" size={11} style={{ color: col }}/>
+                  <span style={{ fontSize: 9, color: "var(--fg-3)", letterSpacing: "0.04em" }}>上海 AQI</span>
+                  <span className="num" style={{ fontSize: 15, color: col, fontWeight: 500, lineHeight: 1 }}>{aqi ?? "--"}</span>
+                  {outdoorPm != null && <span className="lab" style={{ fontSize: 9 }}>PM2.5 <span className="num" style={{ color: pmCol }}>{outdoorPm}</span></span>}
+                </span>
+              );
+            })()}
           </div>
         </div>
 
@@ -477,13 +568,15 @@ const V2RefinedHA = () => {
               {/* Climate dots */}
               {CLIMATES.map(c => {
                 const on = acOn.has(c.id);
-                const heat = (acTargets[c.id] ?? c.target) >= 26;
+                const mode = haStates[c.id]?.state;
+                const heat = mode === "heat";
+                const fan = mode === "fan_only";
                 const dim = selectedRooms && !selectedRooms.has(c.room);
                 const flipped = c.room === "brother" || c.room === "study";
                 const topOffset = c.room === "study" ? -3.5 : flipped ? -2 : 0;
                 return (
                   <div key={c.id}
-                       className={`ac-flow ${on ? "on" : ""} ${heat ? "heat" : "cool"} ${flipped ? "flip" : ""}`}
+                       className={`ac-flow ${on ? "on" : ""} ${fan ? "fan" : heat ? "heat" : "cool"} ${flipped ? "flip" : ""}`}
                        style={{ left: `${c.x}%`, top: `${c.y + topOffset}%`, opacity: dim ? 0.25 : 1 }}
                        onClick={() => toggleAc(c.id)}>
                     <span className="ac-vent"/>
@@ -551,14 +644,17 @@ const V2RefinedHA = () => {
           {CLIMATES.map(c => {
             const on = acOn.has(c.id);
             const tgt = acTargets[c.id];
-            const heat = tgt >= 26;
-            const accent = heat ? "var(--amber)" : "var(--cyan)";
-            const accentBg = heat ? "rgba(228,170,90,0.10)" : "rgba(120,180,230,0.10)";
-            const accentBorder = heat ? "rgba(228,170,90,0.3)" : "rgba(120,180,230,0.3)";
+            const mode = haStates[c.id]?.state;
+            const heat = mode === "heat";
+            const fan = mode === "fan_only";
+            const accent = fan ? "var(--fg)" : heat ? "var(--amber)" : "var(--cyan)";
+            const accentBg = fan ? "rgba(255,255,255,0.07)" : heat ? "rgba(228,170,90,0.10)" : "rgba(120,180,230,0.10)";
+            const accentBorder = fan ? "rgba(255,255,255,0.22)" : heat ? "rgba(228,170,90,0.3)" : "rgba(120,180,230,0.3)";
             return (
               <div key={c.id} className={`ac-row ${on ? "on" : ""}`}
                    style={on ? { background: accentBg, borderColor: accentBorder } : undefined}>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, cursor: "pointer" }}
+                     onClick={() => setSelectedClimateId(id => id === c.id ? null : c.id)}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: on ? "var(--fg)" : "var(--fg-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
                   <div className="lab" style={{ fontSize: 11, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {on ? `现 ${c.current}°` : `待机 · 现 ${c.current}°`}
@@ -567,7 +663,7 @@ const V2RefinedHA = () => {
                 <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {on && <span className="num" style={{ fontSize: 14, color: accent, marginRight: 4 }}>{acTargets[c.id]}°</span>}
                   <span className={`sw sw-mini ${on ? "on" : ""}`} style={{ width: 32, height: 18, background: on ? accent : "rgba(255,255,255,0.10)" }}
-                        onClick={() => toggleAc(c.id)}>
+                        onClick={(e) => { e.stopPropagation(); toggleAc(c.id); }}>
                     <span style={{ position: "absolute", top: 2, left: on ? 16 : 2, width: 14, height: 14, borderRadius: "50%", background: "#fff", transition: "left 200ms" }}/>
                   </span>
                 </div>
@@ -595,6 +691,50 @@ const V2RefinedHA = () => {
 
         {/* Energy */}
       </div>
+
+      {(() => {
+        const selected = CLIMATES.find(c => c.id === selectedClimateId);
+        if (!selected) return null;
+        const mode = haStates[selected.id]?.state || "off";
+        const modalMode = mode === "cool" ? "cool" : mode === "heat" ? "heat" : mode === "fan_only" ? "fan" : "off";
+        const temp = localClimateTemps[selected.id] ?? acTargets[selected.id] ?? selected.target;
+        const coolDisabled = !canUseClimateMode("cool");
+        const heatDisabled = !canUseClimateMode("heat");
+        return (
+          <div className="ac-modal-backdrop" onClick={() => setSelectedClimateId(null)}>
+            <div className={`ac-modal ${modalMode}`} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, color: "var(--fg)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.name}</div>
+                  <div className="lab" style={{ fontSize: 11, marginTop: 2 }}>{mode === "off" ? "待机" : "运行中"}</div>
+                </div>
+                <button className="ac-modal-close" type="button" onClick={() => setSelectedClimateId(null)}>×</button>
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4, marginBottom: 12 }}>
+                <span className="num ac-modal-temp">{temp}</span>
+                <span style={{ fontSize: 16, color: "var(--fg-2)" }}>°C</span>
+              </div>
+              <div className="ac-mode-grid">
+                <button type="button" className={`ac-mode-btn cool ${mode === "cool" ? "on" : ""}`} disabled={coolDisabled} title={coolDisabled ? "已有空调在制热" : undefined} onClick={() => setClimateMode(selected.id, "cool")}>
+                  <Icon name="snow" size={12}/> 制冷
+                </button>
+                <button type="button" className={`ac-mode-btn heat ${mode === "heat" ? "on" : ""}`} disabled={heatDisabled} title={heatDisabled ? "已有空调在制冷" : undefined} onClick={() => setClimateMode(selected.id, "heat")}>
+                  <Icon name="sun" size={12}/> 制热
+                </button>
+                <button type="button" className={`ac-mode-btn fan ${mode === "fan_only" ? "on" : ""}`} onClick={() => setClimateMode(selected.id, "fan_only")}>
+                  <Icon name="wave" size={12}/> 送风
+                </button>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
+                <span className="lab" style={{ fontSize: 11 }}>18</span>
+                <input className="ac-temp-slider" type="range" min="18" max="30" step="1" value={temp}
+                       onChange={(e) => setClimateTemp(selected.id, e.target.value)}/>
+                <span className="lab" style={{ fontSize: 11 }}>30</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ===== Bottom strip — scenes, curtains, media ===== */}
       <div style={{

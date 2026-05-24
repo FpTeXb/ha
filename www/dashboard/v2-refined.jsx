@@ -63,6 +63,11 @@ const WAKE_CURTAIN_IDS = [
   "cover.xiaomi_cn_875659223_acn010_s_2_curtain",
 ];
 const CURTAIN_FULL_TRAVEL_MS = 5000;
+const mapCurtainService = (service) => {
+  if (service === "open_cover") return "close_cover";
+  if (service === "close_cover") return "open_cover";
+  return service;
+};
 const DAY_FLOORPLAN_BASE = "../floorplan-day/base.png";
 const DAY_CURTAIN_RENDERS = [
   { file: "../floorplan-day-overlay/keting.png", ids: ["cover.xiaomi_cn_875660422_acn010_s_2_curtain"] },
@@ -75,6 +80,7 @@ const CLIMATE_LAST_MODE_KEY = "ha-dashboard-last-climate-modes";
 const ROBOROCK_VACUUM_ID = "vacuum.g20";
 const ROBOROCK_STATUS_SENSOR = "sensor.g20_status";
 const ROBOROCK_AFTER_MEAL_BUTTON = "button.g20_fan_hou_qing_ji";
+const INDOOR_PM25_SENSOR = "sensor.zhimi_cn_44409495_m1_pm2_5_density_p_3_2";
 
 const ROBOT_STATE_LABELS = {
   cleaning: "清扫中",
@@ -95,6 +101,14 @@ const ROBOT_CONSUMABLES = [
   { label: "边刷", id: "sensor.g20_side_brush_time_left", baselineHours: 120, baselinePercent: 61 },
   { label: "滤网", id: "sensor.g20_filter_time_left", baselineHours: 130, baselinePercent: 87 },
   { label: "传感器", id: "sensor.g20_sensor_time_left", baselineHours: 8, baselinePercent: 25 },
+];
+
+const ROBOT_DOCK_ITEMS = [
+  { label: "过滤器剩余寿命", id: "sensor.g20_dock_strainer_time_left", kind: "hours" },
+  { label: "基座出错", id: "sensor.g20_dock_dock_error", kind: "error" },
+  { label: "清洁液", id: "binary_sensor.g20_dock_cleaning_fluid", kind: "fluid" },
+  { label: "拖把干燥", id: "sensor.g20_dock_mop_drying_remaining_time", kind: "time" },
+  { label: "维护刷剩余寿命", id: "sensor.g20_dock_maintenance_brush_time_left", kind: "hours" },
 ];
 
 const consumablePercentColor = (percent) => {
@@ -132,8 +146,8 @@ const V2RefinedHA = () => {
     const st = haStates[id];
     if (!st) return 0;
     const p = st.attributes?.current_position;
-    if (typeof p === "number") return p;
-    return st.state === "open" ? 100 : 0;
+    if (typeof p === "number") return 100 - p;
+    return st.state === "open" ? 0 : 100;
   };
 
   const onLights = useMemo(() => {
@@ -177,6 +191,7 @@ const V2RefinedHA = () => {
   const [selectedClimateId, setSelectedClimateId] = useState(null);
   const [localClimateTemps, setLocalClimateTemps] = useState({});
   const [robotButtonStatus, setRobotButtonStatus] = useState(null);
+  const [showDockStatus, setShowDockStatus] = useState(false);
   const [lastClimateModes, setLastClimateModes] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(CLIMATE_LAST_MODE_KEY) || "{}");
@@ -226,6 +241,8 @@ const V2RefinedHA = () => {
   const robotFanSpeed = robotAttrs.fan_speed || robotAttrs.fan_speed_list?.[0] || "默认";
   const robotStatusLabel = ROBOT_STATE_LABELS[robotStatusState] || ROBOT_STATE_LABELS[robotState] || robotStatusState || robotState;
   const robotDocked = robotState === "docked" || robotStatusState === "充电中";
+  const indoorPm25Value = Number.parseFloat(haStates[INDOOR_PM25_SENSOR]?.state);
+  const indoorPm25 = Number.isFinite(indoorPm25Value) ? Math.round(indoorPm25Value) : null;
   const robotConsumables = ROBOT_CONSUMABLES.map(item => {
     const raw = haStates[item.id]?.state;
     const remaining = Number.parseFloat(raw);
@@ -239,6 +256,39 @@ const V2RefinedHA = () => {
       c: consumablePercentColor(percent),
     };
   });
+  const readDockNumber = (id) => Number.parseFloat(haStates[id]?.state);
+  const readDockValue = (id) => {
+    const st = haStates[id];
+    if (!st || st.state === "unknown" || st.state === "unavailable") return "--";
+    return st.state;
+  };
+  const formatDockTime = (item) => {
+    const value = readDockValue(item.id);
+    if (value === "--") return value;
+    const unit = haStates[item.id]?.attributes?.unit_of_measurement || "小时";
+    return `${value}${unit}`;
+  };
+  const isDockErrorState = (value) => {
+    if (!value || value === "--") return false;
+    const normal = ["0", "none", "ok", "off", "无", "正常", "无错误", "无故障"];
+    return !normal.includes(String(value).trim().toLowerCase());
+  };
+  const dockStatusItems = ROBOT_DOCK_ITEMS.map(item => {
+    const raw = readDockValue(item.id);
+    if (item.kind === "error") {
+      const hasError = isDockErrorState(raw);
+      return { ...item, value: hasError ? raw : "正常", error: hasError };
+    }
+    if (item.kind === "fluid") {
+      const error = raw === "on";
+      return { ...item, value: raw === "off" ? "正常" : raw === "on" ? "不足" : raw, error };
+    }
+    const num = readDockNumber(item.id);
+    const error = item.kind === "hours" && Number.isFinite(num) && num <= 0;
+    return { ...item, value: formatDockTime(item), error };
+  });
+  const dockErrors = dockStatusItems.filter(item => item.error).map(item => `${item.label}: ${item.value}`);
+  const dockStatusText = dockErrors.length ? dockErrors.join(" / ") : "基座正常";
 
   // Weather forecast — subscribe when weather entity known
   const [forecast, setForecast] = useState([]);
@@ -318,7 +368,7 @@ const V2RefinedHA = () => {
         if (Math.abs(delta) < 2) return;
         const service = delta > 0 ? "open_cover" : "close_cover";
         const duration = Math.max(400, Math.round(Math.abs(delta) * CURTAIN_FULL_TRAVEL_MS / 100));
-        hc?.callService("cover", service, { entity_id: id });
+        hc?.callService("cover", mapCurtainService(service), { entity_id: id });
         const timer = setTimeout(() => {
           hc?.callService("cover", "stop_cover", { entity_id: id });
         }, duration);
@@ -406,13 +456,18 @@ const V2RefinedHA = () => {
       const cur = curtainOpen[c.id];
       const next = newMap[c.id];
       if (cur === next || next === undefined) continue;
-      if (next > 0) hc?.callService("cover", "open_cover", { entity_id: c.id });
-      else hc?.callService("cover", "close_cover", { entity_id: c.id });
+      if (next > 0) hc?.callService("cover", mapCurtainService("open_cover"), { entity_id: c.id });
+      else hc?.callService("cover", mapCurtainService("close_cover"), { entity_id: c.id });
     }
   };
   const curtainPercent = (id) => curtainOpen[id] || 0;
-  const curtainDirection = (id) => haStates[id]?.attributes?.moving_direction || haStates[id]?.state;
-  const runCurtain = (id, service) => hc?.callService("cover", service, { entity_id: id });
+  const curtainDirection = (id) => {
+    const direction = haStates[id]?.attributes?.moving_direction || haStates[id]?.state;
+    if (direction === "opening") return "closing";
+    if (direction === "closing") return "opening";
+    return direction;
+  };
+  const runCurtain = (id, service) => hc?.callService("cover", mapCurtainService(service), { entity_id: id });
   const toggleCurtain = (id) => {
     const state = haStates[id]?.state;
     const percent = curtainPercent(id);
@@ -488,6 +543,15 @@ const V2RefinedHA = () => {
   const toggleFloorplanMode = () => {
     setFloorplanModeOverride(isDayFloorplan ? "night" : "day");
   };
+  const toggleFullscreen = () => {
+    const root = document.documentElement;
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+      return;
+    }
+    const request = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
+    request?.call(root);
+  };
 
   return (
     <div className="tablet">
@@ -499,7 +563,9 @@ const V2RefinedHA = () => {
         display: "flex", alignItems: "center", justifyContent: "space-between"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <Icon name="home" size={20} style={{ color: "var(--amber)" }}/>
+          <button type="button" className="home-fullscreen-btn" onClick={toggleFullscreen} title="全屏">
+            <Icon name="home" size={20} style={{ color: "var(--amber)" }}/>
+          </button>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <span className="num" style={{ fontSize: 28, fontWeight: 200, letterSpacing: "-0.01em" }}>{timeStr}</span>
             <span className="lab">{dateStr}</span>
@@ -585,11 +651,10 @@ const V2RefinedHA = () => {
           </span>
           <div style={{ display: "flex", gap: 6 }}>
             {(() => {
-              const indoorPm = 12;
-              const indoorPmColor = indoorPm < 50 ? "var(--mint)" : indoorPm < 100 ? "var(--amber)" : "var(--rose)";
+              const indoorPmColor = indoorPm25 == null ? "var(--fg-3)" : indoorPm25 < 50 ? "var(--mint)" : indoorPm25 < 100 ? "var(--amber)" : "var(--rose)";
               return (
                 <span className="chip">
-                  <Icon name="thermo" size={11}/> 室内 22.4° · 湿 48% · PM2.5 <span className="num" style={{ color: indoorPmColor }}>{indoorPm}</span>
+                  <Icon name="thermo" size={11}/> 室内 22.4° · 湿 48% · PM2.5 <span className="num" style={{ color: indoorPmColor }}>{indoorPm25 ?? "--"}</span>
                 </span>
               );
             })()}
@@ -822,6 +887,29 @@ const V2RefinedHA = () => {
       })()}
 
       {/* ===== Bottom strip — scenes, curtains, media ===== */}
+      {showDockStatus && (
+        <div className="ac-modal-backdrop" onClick={() => setShowDockStatus(false)}>
+          <div className="dock-modal" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div>
+                <div style={{ fontSize: 14, color: "var(--fg)", fontWeight: 600 }}>G20 基座状态</div>
+                <div className="lab" style={{ fontSize: 11, marginTop: 2 }}>{dockErrors.length ? `${dockErrors.length} 条异常` : "全部正常"}</div>
+              </div>
+              <button className="ac-modal-close" type="button" onClick={() => setShowDockStatus(false)}>×</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {dockStatusItems.map(item => (
+                <div key={item.id} className={`dock-status-row ${item.error ? "error" : ""}`}>
+                  <span className={`dock-status-dot ${item.error ? "error" : "ok"}`}/>
+                  <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>
+                  <span className="num" style={{ color: item.error ? "var(--rose)" : "var(--fg)" }}>{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{
         position: "absolute", left: 20, right: 20, bottom: 16, height: 148,
         display: "flex", gap: 12
@@ -878,7 +966,7 @@ const V2RefinedHA = () => {
         </div>
 
         {/* Robot vacuum quick card */}
-        <div className="glass" style={{ flex: "0 0 240px", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="glass" style={{ flex: "0 0 240px", padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Icon name="vacuum" size={14} style={{ color: "var(--fg-2)" }}/>
             <span className="eyebrow">G20</span>
@@ -910,6 +998,12 @@ const V2RefinedHA = () => {
                 <div className="num" style={{ fontSize: 10, color: s.c, lineHeight: 1 }}>{s.v}%</div>
               </div>
             ))}
+          </div>
+          <div className={`dock-status-bar tap ${dockErrors.length ? "error" : "ok"}`} onClick={() => setShowDockStatus(true)}>
+            <span className={`dock-status-dot ${dockErrors.length ? "error" : "ok"}`}/>
+            <div className="dock-status-marquee">
+              <span>{dockStatusText}</span>
+            </div>
           </div>
         </div>
 

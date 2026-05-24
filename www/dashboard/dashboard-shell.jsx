@@ -81,7 +81,7 @@ const buildPreviewStates = () => {
   for (const c of CURTAINS) {
     states[c.id] = {
       state: c.open > 0 ? "open" : "closed",
-      attributes: { current_position: c.open },
+      attributes: { current_position: 100 - c.open },
     };
   }
   states["vacuum.g20"] = {
@@ -111,6 +111,30 @@ const buildPreviewStates = () => {
   states["sensor.g20_sensor_time_left"] = {
     state: "8",
     attributes: { friendly_name: "G20 sensor time left", unit_of_measurement: "h" },
+  };
+  states["sensor.g20_dock_strainer_time_left"] = {
+    state: "130",
+    attributes: { friendly_name: "G20 dock strainer time left", unit_of_measurement: "小时" },
+  };
+  states["sensor.g20_dock_dock_error"] = {
+    state: "正常",
+    attributes: { friendly_name: "G20 dock error" },
+  };
+  states["binary_sensor.g20_dock_cleaning_fluid"] = {
+    state: "off",
+    attributes: { friendly_name: "G20 cleaning fluid" },
+  };
+  states["sensor.g20_dock_mop_drying_remaining_time"] = {
+    state: "0",
+    attributes: { friendly_name: "G20 mop drying remaining time", unit_of_measurement: "分钟" },
+  };
+  states["sensor.g20_dock_maintenance_brush_time_left"] = {
+    state: "92",
+    attributes: { friendly_name: "G20 dock maintenance brush time left", unit_of_measurement: "小时" },
+  };
+  states["sensor.zhimi_cn_44409495_m1_pm2_5_density_p_3_2"] = {
+    state: "12",
+    attributes: { friendly_name: "室内 PM2.5", unit_of_measurement: "µg/m³" },
   };
   states["weather.home"] = {
     state: "partlycloudy",

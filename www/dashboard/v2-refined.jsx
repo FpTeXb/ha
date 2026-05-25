@@ -62,7 +62,9 @@ const WAKE_CURTAIN_IDS = [
   "cover.xiaomi_cn_877633736_acn010_s_2_curtain",
   "cover.xiaomi_cn_875659223_acn010_s_2_curtain",
 ];
-const CURTAIN_FULL_TRAVEL_MS = 5000;
+const CURTAIN_FULL_TRAVEL_MS = 30000; // fallback; real value read from sensor
+const curtainJourneySensorId = (coverId) =>
+  coverId.replace("cover.", "sensor.").replace("_s_2_curtain", "_whole_journey_time_p_2_13");
 const mapCurtainService = (service) => {
   if (service === "open_cover") return "close_cover";
   if (service === "close_cover") return "open_cover";
@@ -162,11 +164,16 @@ const V2RefinedHA = () => {
     return s;
   }, [haStates]);
 
+  const [curtainAnimPos, setCurtainAnimPos] = useState({});
+
   const curtainOpen = useMemo(() => {
     const m = {};
-    for (const c of CURTAINS) m[c.id] = coverPos(c.id);
+    for (const c of CURTAINS) {
+      const anim = curtainAnimPos[c.id];
+      m[c.id] = anim !== undefined ? 100 - anim : coverPos(c.id);
+    }
     return m;
-  }, [haStates]);
+  }, [haStates, curtainAnimPos]);
 
   const acTargets = useMemo(() => {
     const m = {};
@@ -201,6 +208,9 @@ const V2RefinedHA = () => {
   });
   const curtainClickTimersRef = React.useRef({});
   const curtainSceneTimersRef = React.useRef([]);
+  const curtainStartRef = React.useRef({});
+  // debug expose
+  useEffect(() => { window.__curtainStartRef = curtainStartRef; window.__setCurtainAnimPos = setCurtainAnimPos; }, []);
   const selectedRooms = useMemo(() => {
     if (!selectedRoom) return null;
     return new Set(ROOM_GROUPS.find(r => r.id === selectedRoom)?.rooms || [selectedRoom]);
@@ -290,6 +300,52 @@ const V2RefinedHA = () => {
   });
   const dockErrors = dockStatusItems.filter(item => item.error).map(item => `${item.label}: ${item.value}`);
   const dockStatusText = dockErrors.length ? dockErrors.join(" / ") : "基座正常";
+
+  // Curtain travel animation — interpolate position since Xiaomi covers don't push mid-travel updates
+  useEffect(() => {
+    for (const c of CURTAINS) {
+      const state = haStates[c.id]?.state;
+      const pos = haStates[c.id]?.attributes?.current_position;
+      const moving = state === "opening" || state === "closing";
+      const tracked = curtainStartRef.current[c.id];
+      if (moving && !tracked) {
+        const fromPos = typeof pos === "number" ? pos : (state === "opening" ? 0 : 100);
+        const toPos = state === "opening" ? 100 : 0;
+        const journeySecs = parseFloat(haStates[curtainJourneySensorId(c.id)]?.state);
+        const fullTravelMs = Number.isFinite(journeySecs) ? journeySecs * 1000 : CURTAIN_FULL_TRAVEL_MS;
+        curtainStartRef.current[c.id] = { time: Date.now(), fromPos, toPos, fullTravelMs };
+      } else if (!moving && tracked) {
+        // Only clear when HA position has settled at the expected destination.
+        // Xiaomi curtains sometimes emit a transient state=open/closed with pos still
+        // at the old value, which would cause a 1-frame flash back to the start position.
+        const posSettled = typeof pos === "number" && Math.abs(pos - tracked.toPos) <= 5;
+        if (posSettled) {
+          delete curtainStartRef.current[c.id];
+          setCurtainAnimPos(prev => { const n = { ...prev }; delete n[c.id]; return n; });
+        } else {
+          // Keep animPos pinned at toPos until position settles
+          setCurtainAnimPos(prev => ({ ...prev, [c.id]: tracked.toPos }));
+        }
+      }
+    }
+  }, [haStates]);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const starts = curtainStartRef.current;
+      if (!Object.keys(starts).length) return;
+      setCurtainAnimPos(() => {
+        const next = {};
+        for (const [id, { time, fromPos, toPos, fullTravelMs }] of Object.entries(starts)) {
+          const dist = Math.abs(toPos - fromPos);
+          const totalMs = (dist / 100) * fullTravelMs;
+          const t = totalMs > 0 ? Math.min((Date.now() - time) / totalMs, 1) : 1;
+          next[id] = Math.round(fromPos + (toPos - fromPos) * t);
+        }
+        return next;
+      });
+    }, 250);
+    return () => clearInterval(timer);
+  }, []);
 
   // Weather forecast — subscribe when weather entity known
   const [forecast, setForecast] = useState([]);

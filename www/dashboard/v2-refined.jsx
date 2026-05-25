@@ -234,6 +234,7 @@ const V2RefinedHA = () => {
   const wxIcon = weather ? (WX_ICON[weather.state] || "cloud") : "moon";
   const wxLabel = weather ? (WX_LABEL[weather.state] || weather.state) : "—";
   const wxTemp = weather?.attributes?.temperature;
+  const isRaining = ["rainy", "pouring", "lightning-rainy"].includes(weather?.state);
   const robotState = haStates[ROBOROCK_VACUUM_ID]?.state || "unknown";
   const robotStatusState = haStates[ROBOROCK_STATUS_SENSOR]?.state;
   const robotAttrs = haStates[ROBOROCK_VACUUM_ID]?.attributes || {};
@@ -535,7 +536,8 @@ const V2RefinedHA = () => {
     w += acOn.size * 720;
     return w;
   }, [onLights, acOn]);
-  const previewHour = Number(new URLSearchParams(location.search).get("hour"));
+  const params = new URLSearchParams(location.search);
+  const previewHour = params.has("preview") ? Number(params.get("hour")) : NaN;
   const floorplanHour = Number.isFinite(previewHour) ? previewHour : now.getHours();
   const autoDayFloorplan = floorplanHour >= 6 && floorplanHour < 17;
   const isDayFloorplan = floorplanModeOverride ? floorplanModeOverride === "day" : autoDayFloorplan;
@@ -758,6 +760,7 @@ const V2RefinedHA = () => {
               })}
 
               </div>
+              {isRaining && <div className="rain-overlay" aria-hidden="true"/>}
 
               <button className={`fp-mode-toggle ${isDayFloorplan ? "day" : "night"}`}
                       type="button"

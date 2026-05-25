@@ -470,6 +470,9 @@ const V2RefinedHA = () => {
     setLocalClimateTemps(prev => ({ ...prev, [id]: temp }));
     hc?.callService("climate", "set_temperature", { entity_id: id, temperature: temp });
   };
+  const setFanMode = (id, fan_mode) => {
+    hc?.callService("climate", "set_fan_mode", { entity_id: id, fan_mode });
+  };
   const allOff = () => {
     for (const l of LIGHTS) if (isOn(l.id)) hc?.callService("light", "turn_off", { entity_id: l.id });
   };
@@ -905,10 +908,18 @@ const V2RefinedHA = () => {
         const selected = CLIMATES.find(c => c.id === selectedClimateId);
         if (!selected) return null;
         const mode = haStates[selected.id]?.state || "off";
-        const modalMode = mode === "cool" ? "cool" : mode === "heat" ? "heat" : mode === "fan_only" ? "fan" : "off";
+        const attrs = haStates[selected.id]?.attributes || {};
+        const modalMode = mode === "cool" ? "cool" : mode === "heat" ? "heat" : mode === "fan_only" ? "fan" : mode === "dry" ? "dry" : "off";
         const temp = localClimateTemps[selected.id] ?? acTargets[selected.id] ?? selected.target;
         const coolDisabled = !canUseClimateMode("cool");
         const heatDisabled = !canUseClimateMode("heat");
+        const fanMode = attrs.fan_mode || "";
+        const FAN_MODES = [
+          { ha: "自动", label: "自动", cls: "auto" },
+          { ha: "低风", label: "低速", cls: "low" },
+          { ha: "中风", label: "中速", cls: "mid" },
+          { ha: "高风", label: "高速", cls: "high" },
+        ];
         return (
           <div className="ac-modal-backdrop" onClick={() => setSelectedClimateId(null)}>
             <div className={`ac-modal ${modalMode}`} onClick={(e) => e.stopPropagation()}>
@@ -923,7 +934,7 @@ const V2RefinedHA = () => {
                 <span className="num ac-modal-temp">{temp}</span>
                 <span style={{ fontSize: 16, color: "var(--fg-2)" }}>°C</span>
               </div>
-              <div className="ac-mode-grid">
+              <div className="ac-mode-grid ac-mode-grid-4">
                 <button type="button" className={`ac-mode-btn cool ${mode === "cool" ? "on" : ""}`} disabled={coolDisabled} title={coolDisabled ? "已有空调在制热" : undefined} onClick={() => setClimateMode(selected.id, "cool")}>
                   <Icon name="snow" size={12}/> 制冷
                 </button>
@@ -933,8 +944,20 @@ const V2RefinedHA = () => {
                 <button type="button" className={`ac-mode-btn fan ${mode === "fan_only" ? "on" : ""}`} onClick={() => setClimateMode(selected.id, "fan_only")}>
                   <Icon name="wave" size={12}/> 送风
                 </button>
+                <button type="button" className={`ac-mode-btn dry ${mode === "dry" ? "on" : ""}`} onClick={() => setClimateMode(selected.id, "dry")}>
+                  <Icon name="drop" size={12}/> 除湿
+                </button>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
+              <div className="ac-fan-grid" style={{ marginTop: 8 }}>
+                {FAN_MODES.map(f => (
+                  <button key={f.ha} type="button"
+                    className={`ac-fan-btn ${f.cls} ${fanMode === f.ha ? "on" : ""}`}
+                    onClick={() => setFanMode(selected.id, f.ha)}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
                 <span className="lab" style={{ fontSize: 11 }}>18</span>
                 <input className="ac-temp-slider" type="range" min="18" max="30" step="1" value={temp}
                        onChange={(e) => setClimateTemp(selected.id, e.target.value)}/>
